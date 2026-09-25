@@ -29,7 +29,7 @@ export function AdminPanel() {
     obtenerRifas, 
     activarRifa, 
     eliminarRifa,
-    registrarCompradorEnRifaActiva,
+    registrarCompradorMultiplesTickets,  // ← AGREGAR ESTA
     obtenerRifaActiva
   } = useRifa();
 
@@ -110,15 +110,22 @@ export function AdminPanel() {
   };
 
   const handleRegistrarComprador = async (datos) => {
-    try {
-      setLoading(true);
-      
-      if (!rifaActiva) {
-        throw new Error('No hay rifa activa. Activa una rifa primero.');
-      }
+  try {
+    setLoading(true);
+    
+    if (!rifaActiva) {
+      throw new Error('No hay rifa activa. Activa una rifa primero.');
+    }
 
-      const resultado = await registrarCompradorEnRifaActiva(rifaActiva.id, datos);
-      setMessage({ tipo: 'exito', texto: `Comprador registrado. Número: ${resultado.registro.numeroRifa}` });
+    const resultado = await registrarCompradorMultiplesTickets(
+      rifaActiva.id,
+      datos,
+      datos.cantidadTickets || 1
+    );
+      setMessage({ 
+  tipo: 'exito', 
+  texto: `${resultado.totalTickets} ticket(s) registrado(s) exitosamente. Números: ${resultado.numerosAsignados.join(', ')}` 
+});
       
       return resultado;
     } catch (error) {
@@ -137,7 +144,7 @@ export function AdminPanel() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-gray-50)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-gray-900)' }}>
       {/* HEADER */}
       <div style={{
         backgroundColor: 'var(--color-primary)',

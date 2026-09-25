@@ -1,30 +1,32 @@
 /**
- * RegistrarSection Component - Versión 2.0
+ * RegistrarSection Component - Versión 3.0
  * 
- * Registra compradores en la rifa activa
+ * Registra compradores con múltiples tickets
  */
 
 import { useState } from 'react';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
+import { ProgressBarRifa } from '../common/ProgressBarRifa';
 
 export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
   const [formData, setFormData] = useState({
     cedula: '',
     nombre: '',
     correo: '',
-    telefono: ''
+    telefono: '',
+    cantidadTickets: 1
   });
 
   const [error, setError] = useState(null);
   const [exito, setExito] = useState(false);
-  const [numeroAsignado, setNumeroAsignado] = useState(null);
+  const [numerosAsignados, setNumerosAsignados] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'cantidadTickets' ? Math.max(1, parseInt(value) || 1) : value
     }));
     setError(null);
   };
@@ -33,7 +35,7 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
     e.preventDefault();
     setError(null);
     setExito(false);
-    setNumeroAsignado(null);
+    setNumerosAsignados([]);
 
     // Validaciones
     if (!formData.cedula.trim()) {
@@ -56,24 +58,39 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
       return;
     }
 
+    if (formData.cantidadTickets <= 0) {
+      setError('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    // Validar disponibilidad
+    const disponibles = rifaActiva.cantidadNumeros - (rifaActiva.numerosUsados?.length || 0);
+    if (formData.cantidadTickets > disponibles) {
+      setError(
+        `No hay suficientes números disponibles. Solicitados: ${formData.cantidadTickets}, Disponibles: ${disponibles}`
+      );
+      return;
+    }
+
     // Llamar servicio
     const resultado = await onRegistrar(formData);
 
     if (resultado.exito) {
       setExito(true);
-      setNumeroAsignado(resultado.registro.numeroRifa);
+      setNumerosAsignados(resultado.numerosAsignados || []);
       setFormData({
         cedula: '',
         nombre: '',
         correo: '',
-        telefono: ''
+        telefono: '',
+        cantidadTickets: 1
       });
 
-      // Limpiar mensaje después de 5 segundos
+      // Limpiar mensaje después de 6 segundos
       setTimeout(() => {
         setExito(false);
-        setNumeroAsignado(null);
-      }, 5000);
+        setNumerosAsignados([]);
+      }, 6000);
     } else {
       setError(resultado.error);
     }
@@ -94,39 +111,88 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
     );
   }
 
+  const disponibles = rifaActiva.cantidadNumeros - (rifaActiva.numerosUsados?.length || 0);
+
   return (
     <div className="card">
       <div className="card-header">
         <h3>Registrar Comprador</h3>
-        <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+        <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
           Rifa activa: <strong>{rifaActiva.nombre}</strong>
         </p>
       </div>
 
       <div className="card-body">
+        {/* BARRA DE PROGRESO */}
+        <div style={{ marginBottom: 'var(--space-2xl)' }}>
+          <ProgressBarRifa
+            numerosUsados={rifaActiva.numerosUsados?.length || 0}
+            cantidadTotal={rifaActiva.cantidadNumeros}
+          />
+        </div>
+
         {error && <div className="alert alert-error">{error}</div>}
         {exito && (
           <div className="alert alert-success">
-            ✅ Comprador registrado exitosamente
-            {numeroAsignado && (
-              <p style={{ margin: 'var(--space-md) 0 0', fontSize: 'var(--font-size-lg)', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                Número asignado: {numeroAsignado}
-              </p>
+            <div style={{ marginBottom: 'var(--space-md)' }}>
+              ✅ {formData.cantidadTickets} ticket{formData.cantidadTickets !== 1 ? 's' : ''} registrado{formData.cantidadTickets !== 1 ? 's' : ''} exitosamente
+            </div>
+            {numerosAsignados.length > 0 && (
+              <div style={{
+                padding: 'var(--space-lg)',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: 'var(--border-radius-md)',
+                marginTop: 'var(--space-md)'
+              }}>
+                <p style={{ margin: 0, marginBottom: 'var(--space-sm)', fontWeight: 'bold' }}>
+                  Números asignados:
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+                  {numerosAsignados.map((numero) => (
+                    <span
+                      key={numero}
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                        padding: 'var(--space-sm) var(--space-md)',
+                        borderRadius: 'var(--border-radius-md)',
+                        fontSize: 'var(--font-size-sm)',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {numero}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <Input
-            label="Cédula"
-            name="cedula"
-            value={formData.cedula}
-            onChange={handleChange}
-            disabled={loading}
-            required
-            placeholder="1234567890"
-            style={{ marginBottom: 'var(--space-lg)' }}
-          />
+          <div className="grid-2">
+            <Input
+              label="Cédula"
+              name="cedula"
+              value={formData.cedula}
+              onChange={handleChange}
+              disabled={loading}
+              required
+              placeholder="1234567890"
+            />
+
+            <Input
+              label="Cantidad de Tickets"
+              name="cantidadTickets"
+              type="number"
+              value={formData.cantidadTickets}
+              onChange={handleChange}
+              disabled={loading}
+              required
+              min="1"
+              max={disponibles}
+              placeholder="1"
+            />
+          </div>
 
           <Input
             label="Nombre Completo"
@@ -170,28 +236,31 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
             disabled={loading}
             className="btn-block"
           >
-            Registrar Comprador
+            Registrar {formData.cantidadTickets} Ticket{formData.cantidadTickets !== 1 ? 's' : ''}
           </Button>
         </form>
 
         <div style={{
           marginTop: 'var(--space-2xl)',
           padding: 'var(--space-lg)',
-          backgroundColor: 'var(--color-gray-50)',
+          backgroundColor: 'var(--color-gray-500)',
           borderRadius: 'var(--border-radius-md)',
           borderLeft: '4px solid var(--color-primary)'
         }}>
-          <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            <strong>📊 Información de la rifa activa:</strong>
+          <p style={{ margin: 0, marginBottom: 'var(--space-sm)', fontWeight: 'bold' }}>
+            📊 Información de la rifa activa:
           </p>
-          <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)' }}>
-            Números: {rifaActiva.numeroInicio} - {rifaActiva.numeroInicio + rifaActiva.cantidadNumeros - 1}
+          <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+            Números: {rifaActiva.numeroInicio.toLocaleString('es-ES')} - {(rifaActiva.numeroInicio + rifaActiva.cantidadNumeros - 1).toLocaleString('es-ES')}
           </p>
-          <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)' }}>
-            Disponibles: {rifaActiva.cantidadNumeros - (rifaActiva.numerosUsados?.length || 0)} de {rifaActiva.cantidadNumeros}
+          <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+            Disponibles: <strong style={{ color: 'var(--color-primary-green)' }}>{disponibles.toLocaleString('es-ES')}</strong> de {rifaActiva.cantidadNumeros.toLocaleString('es-ES')}
           </p>
-          <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)' }}>
+          <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
             Fecha de sorteo: {new Date(rifaActiva.fecha).toLocaleDateString('es-ES')}
+          </p>
+          <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)' }}>
+            Responsable: {rifaActiva.responsable}
           </p>
         </div>
       </div>

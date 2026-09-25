@@ -226,6 +226,96 @@ export async function registrarCompradorEnRifa(rifaId, datos) {
 }
 
 /**
+ * AGREGAR ESTA FUNCIÓN A rifaService.js (después de registrarCompradorEnRifa)
+ * 
+ * Registra múltiples tickets para un mismo comprador
+ */
+
+export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidadTickets) {
+  try {
+    // Validaciones
+    if (!datos.cedula || !datos.nombre || !datos.correo || !datos.telefono) {
+      throw new Error('Todos los campos son requeridos');
+    }
+
+    if (cantidadTickets <= 0) {
+      throw new Error('La cantidad debe ser mayor a 0');
+    }
+
+    // Obtener rifa
+    const rifa = await obtenerRifa(rifaId);
+    if (!rifa) {
+      throw new Error('Rifa no encontrada');
+    }
+
+    // Validar disponibilidad
+    const numerosDisponibles = rifa.cantidadNumeros - (rifa.numerosUsados?.length || 0);
+    if (cantidadTickets > numerosDisponibles) {
+      throw new Error(
+        `No hay suficientes números disponibles. Solicitados: ${cantidadTickets}, Disponibles: ${numerosDisponibles}`
+      );
+    }
+
+    // Generar N números aleatorios únicos
+    const numerosGenerados = [];
+    const numerosActuales = [...(rifa.numerosUsados || [])];
+
+    for (let i = 0; i < cantidadTickets; i++) {
+      const numero = generarNumeroAleatorio(
+        rifa.numeroInicio,
+        rifa.cantidadNumeros,
+        numerosActuales
+      );
+
+      if (!numero) {
+        throw new Error(`Error al generar número ${i + 1}`);
+      }
+
+      numerosGenerados.push(numero);
+      numerosActuales.push(numero);
+    }
+
+    // Crear registros
+    const registrosCreados = [];
+    const timestamps = Date.now();
+
+    for (let i = 0; i < cantidadTickets; i++) {
+      const registroId = `${datos.cedula}_${timestamps}_${i}`;
+      const nuevoRegistro = {
+        cedula: datos.cedula,
+        nombre: datos.nombre,
+        correo: datos.correo,
+        telefono: datos.telefono,
+        numeroRifa: numerosGenerados[i],
+        fecha: new Date().toISOString(),
+        posicionCompra: i + 1, // Para saber cuál fue el ticket 1, 2, 3, etc
+        compraTotal: cantidadTickets // Referencia al total comprado
+      };
+
+      // Guardar registro
+      await set(ref(database, `rifas/${rifaId}/registros/${registroId}`), nuevoRegistro);
+      registrosCreados.push({
+        id: registroId,
+        ...nuevoRegistro
+      });
+    }
+
+    // Actualizar números usados
+    await update(ref(database, `rifas/${rifaId}`), { numerosUsados: numerosActuales });
+
+    return {
+      exito: true,
+      registrosCreados,
+      totalTickets: cantidadTickets,
+      numerosAsignados: numerosGenerados
+    };
+  } catch (error) {
+    throw new Error(`Error al registrar comprador: ${error.message}`);
+  }
+}
+
+
+/**
  * Obtiene todos los registros de una rifa
  */
 export async function obtenerRegistrosDeRifa(rifaId) {
@@ -275,6 +365,46 @@ export async function buscarRegistroEnRifaActiva(tipo, valor) {
     }) || null;
   } catch (error) {
     throw new Error(`Error al buscar registro: ${error.message}`);
+  }
+}
+
+
+/**
+ * AGREGAR ESTA FUNCIÓN A rifaService.js (después de buscarRegistroEnRifaActiva)
+ * 
+ * Busca todos los tickets de un cliente en la rifa activa
+ */
+
+export async function buscarTicketsDelClienteEnRifaActiva(tipo, valor) {
+  try {
+    // Obtener rifa activa
+    const rifaActiva = await obtenerRifaActiva();
+    if (!rifaActiva) {
+      return [];
+    }
+
+    // Obtener registros
+    const registros = await obtenerRegistrosDeRifa(rifaActiva.id);
+
+    // Filtrar por tipo (correo o teléfono)
+    const ticketsDelCliente = registros.filter(reg => {
+      if (tipo === 'correo') {
+        return reg.correo && reg.correo.toLowerCase() === valor.toLowerCase();
+      } else if (tipo === 'telefono') {
+        return reg.telefono === valor;
+      }
+      return false;
+    });
+
+    // Ordenar por fecha y posición de compra
+    return ticketsDelCliente.sort((a, b) => {
+      if (a.fecha === b.fecha) {
+        return (a.posicionCompra || 0) - (b.posicionCompra || 0);
+      }
+      return new Date(a.fecha) - new Date(b.fecha);
+    });
+  } catch (error) {
+    throw new Error(`Error al buscar tickets: ${error.message}`);
   }
 }
 

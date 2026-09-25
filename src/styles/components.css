@@ -11,7 +11,7 @@
    ============================ */
 
 .btn {
-  display: inline-block;
+  display: line-block;
   padding: var(--space-md) var(--space-lg);
   border: none;
   border-radius: var(--border-radius-md);
@@ -44,12 +44,12 @@
 }
 
 .btn-secondary {
-  background-color: var(--color-gray-200);
+  background-color: var(--color-gray-700);
   color: var(--color-text-primary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-gray-300);
+  background-color: var(--color-gray-500);
 }
 
 .btn-success {
@@ -90,7 +90,7 @@
    ============================ */
 
 .card {
-  background-color: var(--color-white);
+  background-color: var(--color-gray-600);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
   padding: var(--space-lg);
@@ -191,7 +191,7 @@
   display: block;
   font-weight: var(--font-weight-medium);
   margin-bottom: var(--space-sm);
-  color: rgb(121, 120, 120);
+  color: rgb(247, 247, 247);
 }
 
 .form-helper {

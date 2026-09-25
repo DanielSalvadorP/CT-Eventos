@@ -115,6 +115,34 @@ export function useRifa() {
     }
   };
 
+  /**
+   * Registra múltiples tickets para un comprador
+   */
+  const registrarCompradorMultiplesTickets = async (rifaId, datos, cantidadTickets) => {
+    try {
+      setError(null);
+      const resultado = await rifaService.registrarCompradorMultiplesTickets(rifaId, datos, cantidadTickets);
+      return resultado;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+ 
+  /**
+   * Busca todos los tickets de un cliente en rifa activa
+   */
+  const buscarTicketsDelCliente = async (tipo, valor) => {
+    try {
+      setError(null);
+      return await rifaService.buscarTicketsDelClienteEnRifaActiva(tipo, valor);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+ 
+
   return {
     // Rifas
     crearRifa,
@@ -131,6 +159,10 @@ export function useRifa() {
     // Estadísticas
     obtenerEstadisticas,
     
+// NUEVAS:
+    registrarCompradorMultiplesTickets,
+    buscarTicketsDelCliente,
+
     // Estado
     error,
     loading

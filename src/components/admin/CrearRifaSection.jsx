@@ -85,8 +85,9 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
 
         <form onSubmit={handleSubmit}>
           <div className="grid-2">
+
+            <h5>Nombre de la Rifa</h5>
             <Input
-              label="Nombre de la Rifa"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
@@ -94,9 +95,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               required
               placeholder="Ej: Rifa Navidad 2025"
             />
-
+              <h5>Responsable</h5>
             <Input
-              label="Responsable"
               name="responsable"
               value={formData.responsable}
               onChange={handleChange}
@@ -104,9 +104,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               required
               placeholder="Nombre de quien organiza"
             />
-
+              <h5>Número Inicial</h5>
             <Input
-              label="Número Inicial"
               name="numeroInicio"
               type="number"
               value={formData.numeroInicio}
@@ -114,9 +113,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               disabled={loading}
               placeholder="11111"
             />
-
+              <h5>Cantidad de Números</h5>
             <Input
-              label="Cantidad de Números"
               name="cantidadNumeros"
               type="number"
               value={formData.cantidadNumeros}
@@ -124,9 +122,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               disabled={loading}
               placeholder="10000"
             />
-
+              <h5>Fecha de Sorteo</h5>
             <Input
-              label="Fecha de Sorteo"
               name="fecha"
               type="date"
               value={formData.fecha}
@@ -162,7 +159,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
           </Button>
         </form>
 
-        <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+        <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
           💡 Solo puede haber una rifa activa. Al activar una, las demás se desactivarán automáticamente.
         </p>
       </div>

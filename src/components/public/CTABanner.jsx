@@ -12,6 +12,7 @@ export function CTABanner() {
     <div style={{
       backgroundColor: 'var(--color-primary)',
       color: 'white',
+      marginTop: 'var(--space-3xl)',
       padding: 'var(--space-3xl) var(--space-lg)',
       borderRadius: 'var(--border-radius-lg)',
       textAlign: 'center',

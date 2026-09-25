@@ -17,7 +17,7 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
     return (
       <div className="card">
         <div className="card-header">
-          <h3>Mis Rifas</h3>
+          <h3 >Mis Rifas</h3>
         </div>
         <div className="card-body" style={{ textAlign: 'center', padding: 'var(--space-3xl)' }}>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>

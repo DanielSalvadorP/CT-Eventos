@@ -78,7 +78,7 @@ export function SeguridadSection({ onCambiarPassword, loading }) {
     <div style={{display:'flex', width: '100%', justifyContent:'center'}}>
       <div className="card" style={{ maxWidth: '600px' }}>
         <div className="card-header">
-          <h3  style={{color: 'grey'}}>Cambiar Contraseña</h3>
+          <h3  style={{color: 'var(--color-gray-50:)'}}>Cambiar Contraseña</h3>
         </div>
 
         <div className="card-body">
