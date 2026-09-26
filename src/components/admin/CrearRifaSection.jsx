@@ -1,7 +1,7 @@
 /**
- * CrearRifaSection Component
+ * CrearRifaSection Component - Versión 2.0
  * 
- * Permite crear una nueva rifa con todos sus parámetros
+ * Permite crear una nueva rifa con dígitos configurables
  */
 
 import { useState } from 'react';
@@ -12,7 +12,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
   const [formData, setFormData] = useState({
     nombre: '',
     responsable: '',
-    numeroInicio: 11111,
+    cantidadDigitos: 6,
     cantidadNumeros: 10000,
     fecha: '',
     activa: false
@@ -25,7 +25,11 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' 
+        ? checked 
+        : (name === 'cantidadDigitos' || name === 'cantidadNumeros')
+          ? Math.max(1, parseInt(value) || 1)
+          : value
     }));
   };
 
@@ -50,8 +54,22 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       return;
     }
 
+    if (formData.cantidadDigitos <= 0) {
+      setError('La cantidad de dígitos debe ser mayor a 0');
+      return;
+    }
+
     if (formData.cantidadNumeros <= 0) {
-      setError('La cantidad debe ser mayor a 0');
+      setError('La cantidad de números debe ser mayor a 0');
+      return;
+    }
+
+    // Validar que no haya más tickets que dígitos permitan
+    const maxPosibles = Math.pow(10, formData.cantidadDigitos);
+    if (formData.cantidadNumeros > maxPosibles) {
+      setError(
+        `Con ${formData.cantidadDigitos} dígitos, máximo ${maxPosibles.toLocaleString('es-ES')} tickets. Ingresaste ${formData.cantidadNumeros.toLocaleString('es-ES')}`
+      );
       return;
     }
 
@@ -62,7 +80,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       setFormData({
         nombre: '',
         responsable: '',
-        numeroInicio: 11111,
+        cantidadDigitos: 6,
         cantidadNumeros: 10000,
         fecha: '',
         activa: false
@@ -72,6 +90,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       setError(resultado.error);
     }
   };
+
+  const maxPosibles = Math.pow(10, formData.cantidadDigitos);
 
   return (
     <div className="card">
@@ -85,9 +105,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
 
         <form onSubmit={handleSubmit}>
           <div className="grid-2">
-
-            <h5>Nombre de la Rifa</h5>
             <Input
+              label="Nombre de la Rifa"
               name="nombre"
               value={formData.nombre}
               onChange={handleChange}
@@ -95,8 +114,9 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               required
               placeholder="Ej: Rifa Navidad 2025"
             />
-              <h5>Responsable</h5>
+
             <Input
+              label="Responsable"
               name="responsable"
               value={formData.responsable}
               onChange={handleChange}
@@ -104,26 +124,33 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               required
               placeholder="Nombre de quien organiza"
             />
-              <h5>Número Inicial</h5>
+
             <Input
-              name="numeroInicio"
+              label="Cantidad de Dígitos"
+              name="cantidadDigitos"
               type="number"
-              value={formData.numeroInicio}
+              value={formData.cantidadDigitos}
               onChange={handleChange}
               disabled={loading}
-              placeholder="11111"
+              placeholder="6"
+              min="1"
+              max="9"
             />
-              <h5>Cantidad de Números</h5>
+
             <Input
+              label="Cantidad de Tickets"
               name="cantidadNumeros"
               type="number"
               value={formData.cantidadNumeros}
               onChange={handleChange}
               disabled={loading}
               placeholder="10000"
+              min="1"
+              max={maxPosibles}
             />
-              <h5>Fecha de Sorteo</h5>
+
             <Input
+              label="Fecha de Sorteo"
               name="fecha"
               type="date"
               value={formData.fecha}
@@ -146,12 +173,36 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
             </div>
           </div>
 
+          {/* INFORMACIÓN DEL FORMATO */}
+          <div style={{
+            backgroundColor: 'var(--color-gray-50)',
+            padding: 'var(--space-lg)',
+            borderRadius: 'var(--border-radius-md)',
+            marginBottom: 'var(--space-lg)',
+            borderLeft: '4px solid var(--color-primary)'
+          }}>
+            <p style={{ margin: 0, marginBottom: 'var(--space-sm)', fontWeight: 'bold' }}>
+              📋 Información del formato:
+            </p>
+            <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+              Con <strong>{formData.cantidadDigitos}</strong> dígitos, máximo <strong>{maxPosibles.toLocaleString('es-ES')}</strong> tickets posibles
+            </p>
+            <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+              Ejemplo: {Array(formData.cantidadDigitos).fill('0').join('').slice(0, -3) + '123'}
+            </p>
+            {formData.cantidadNumeros > maxPosibles && (
+              <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)', color: '#991b1b' }}>
+                ⚠️ La cantidad de tickets ({formData.cantidadNumeros}) supera el máximo ({maxPosibles})
+              </p>
+            )}
+          </div>
+
           <Button
             type="submit"
             variant="primary"
             size="large"
             loading={loading}
-            disabled={loading}
+            disabled={loading || formData.cantidadNumeros > maxPosibles}
             className="btn-block"
             style={{ marginTop: 'var(--space-lg)' }}
           >
@@ -159,7 +210,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
           </Button>
         </form>
 
-        <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+        <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
           💡 Solo puede haber una rifa activa. Al activar una, las demás se desactivarán automáticamente.
         </p>
       </div>

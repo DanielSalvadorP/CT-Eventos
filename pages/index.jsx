@@ -8,6 +8,7 @@
 import Head from 'next/head';
 import { Header } from '../src/components/common/Header';
 import { SearchSection } from '../src/components/public/SearchSection';
+import { SocialSection } from '../src/components/public/SocialSection';
 import { CTABanner } from '../src/components/public/CTABanner';
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
       <main>
         <CTABanner />
         <SearchSection />
+        <SocialSection />
       </main>
 
       <footer style={{

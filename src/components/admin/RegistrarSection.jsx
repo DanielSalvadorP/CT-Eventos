@@ -1,7 +1,8 @@
 /**
- * RegistrarSection Component - Versión 3.0
+ * RegistrarSection Component - Versión 4.0
  * 
  * Registra compradores con múltiples tickets
+ * Muestra números formateados con cantidad de dígitos
  */
 
 import { useState } from 'react';
@@ -117,7 +118,7 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
     <div className="card">
       <div className="card-header">
         <h3>Registrar Comprador</h3>
-        <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
+        <p style={{ margin: 'var(--space-sm) 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
           Rifa activa: <strong>{rifaActiva.nombre}</strong>
         </p>
       </div>
@@ -126,8 +127,10 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
         {/* BARRA DE PROGRESO */}
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
           <ProgressBarRifa
+            rifaId={rifaActiva.id}
             numerosUsados={rifaActiva.numerosUsados?.length || 0}
             cantidadTotal={rifaActiva.cantidadNumeros}
+            rifaNombre={rifaActiva.nombre}
           />
         </div>
 
@@ -156,7 +159,8 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
                         padding: 'var(--space-sm) var(--space-md)',
                         borderRadius: 'var(--border-radius-md)',
                         fontSize: 'var(--font-size-sm)',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        fontFamily: 'monospace'
                       }}
                     >
                       {numero}
@@ -251,7 +255,10 @@ export function RegistrarSection({ rifaActiva, onRegistrar, loading }) {
             📊 Información de la rifa activa:
           </p>
           <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
-            Números: {rifaActiva.numeroInicio.toLocaleString('es-ES')} - {(rifaActiva.numeroInicio + rifaActiva.cantidadNumeros - 1).toLocaleString('es-ES')}
+            Formato: <strong>{rifaActiva.cantidadDigitos} dígitos</strong>
+          </p>
+          <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+            Ejemplo: {Array(rifaActiva.cantidadDigitos).fill('0').join('').slice(0, -3) + '123'}
           </p>
           <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
             Disponibles: <strong style={{ color: 'var(--color-primary-green)' }}>{disponibles.toLocaleString('es-ES')}</strong> de {rifaActiva.cantidadNumeros.toLocaleString('es-ES')}

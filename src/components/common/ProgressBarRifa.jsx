@@ -1,12 +1,42 @@
+import { useEffect, useState } from 'react';
+import { database } from '../../services/firebase';
+import { ref, onValue } from 'firebase/database';
+
 /**
  * ProgressBarRifa Component
  * 
  * Muestra barra de progreso visual de tickets vendidos vs disponibles
  */
 
-export function ProgressBarRifa({ numerosUsados = 0, cantidadTotal = 1, rifaNombre = null }) {
-  const porcentaje = Math.round((numerosUsados / cantidadTotal) * 100);
-  const disponibles = cantidadTotal - numerosUsados;
+export function ProgressBarRifa({ numerosUsados = 0, cantidadTotal = 1, rifaNombre = null, rifaId = null }) {
+  const [datosActuales, setDatosActuales] = useState({
+    numerosUsados,
+    cantidadTotal
+  });
+
+  useEffect(() => {
+    if (!rifaId) {
+      setDatosActuales({ numerosUsados, cantidadTotal });
+      return;
+    }
+
+    // Suscribirse a cambios en tiempo real
+    const rifaRef = ref(database, `rifas/${rifaId}`);
+    const unsubscribe = onValue(rifaRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const rifa = snapshot.val();
+        setDatosActuales({
+          numerosUsados: rifa.numerosUsados?.length || 0,
+          cantidadTotal: rifa.cantidadNumeros
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [rifaId]);
+
+  const porcentaje = Math.round((datosActuales.numerosUsados / datosActuales.cantidadTotal) * 100);
+  const disponibles = datosActuales.cantidadTotal - datosActuales.numerosUsados;
 
   return (
     <div style={{ marginBottom: 'var(--space-lg)' }}>
@@ -71,13 +101,13 @@ export function ProgressBarRifa({ numerosUsados = 0, cantidadTotal = 1, rifaNomb
         color: 'var(--color-text-secondary)'
       }}>
         <span>
-          <strong style={{ color: 'var(--color-primary-green)' }}>{numerosUsados}</strong> Vendidos
+        <strong style={{ color: 'var(--color-primary-green)' }}>{datosActuales.numerosUsados}</strong> Vendidos
         </span>
         <span>
           <strong style={{ color: 'var(--color-primary-green)' }}>{disponibles}</strong> Disponibles
         </span>
         <span>
-          Total: <strong>{cantidadTotal}</strong>
+          Total: <strong>{datosActuales.cantidadTotal}</strong>
         </span>
       </div>
     </div>

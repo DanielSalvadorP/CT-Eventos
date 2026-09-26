@@ -81,7 +81,7 @@ export function RegistrosRifaTable({ rifaId, rifaNombre, onClose }) {
                 fontSize: 'var(--font-size-sm)'
               }}>
                 <thead>
-                  <tr style={{ backgroundColor: 'var(--color-gray-100)', borderBottom: '2px solid var(--color-gray-200)' }}>
+                  <tr style={{ backgroundColor: 'var(--color-gray-700)', borderBottom: '2px solid var(--color-gray-200)' }}>
                     <th style={{ padding: 'var(--space-md)', textAlign: 'left', fontWeight: 'bold' }}>Cédula</th>
                     <th style={{ padding: 'var(--space-md)', textAlign: 'left', fontWeight: 'bold' }}>Nombre</th>
                     <th style={{ padding: 'var(--space-md)', textAlign: 'left', fontWeight: 'bold' }}>Correo</th>

@@ -1,7 +1,8 @@
 /**
- * SearchSection Component - Versión 2.0
+ * SearchSection Component - Versión 3.0
  * 
  * Busca tickets de un cliente y muestra TODOS sus números
+ * Con formato de dígitos configurables
  */
 
 import { useState } from 'react';
@@ -16,14 +17,16 @@ export function SearchSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [buscado, setBuscado] = useState(false);
+  const [rifaInfo, setRifaInfo] = useState(null);
 
-  const { buscarTicketsDelCliente } = useRifa();
+  const { buscarTicketsDelCliente, obtenerRifaActiva } = useRifa();
 
   const handleSearch = async (e) => {
     e.preventDefault();
     setError(null);
     setResultados([]);
     setBuscado(false);
+    setRifaInfo(null);
 
     if (!valor.trim()) {
       setError(`Por favor ingresa un ${tipoSearch}`);
@@ -32,6 +35,17 @@ export function SearchSection() {
 
     try {
       setLoading(true);
+      
+      // Obtener rifa activa para saber cantidad de dígitos
+      const rifaActiva = await obtenerRifaActiva();
+      if (!rifaActiva) {
+        setError('No hay rifa activa en este momento');
+        setBuscado(true);
+        return;
+      }
+      
+      setRifaInfo(rifaActiva);
+      
       const tickets = await buscarTicketsDelCliente(tipoSearch, valor);
 
       if (tickets && tickets.length > 0) {
@@ -55,14 +69,15 @@ export function SearchSection() {
       marginTop: 'var(--space-3xl)',
       marginBottom: 'var(--space-3xl)',
       borderRadius: 'var(--border-radius-lg)',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+      overflow: 'hidden'  // ← Agrega esto
     }}>
       <div className="container">
         <h2 style={{
-          color: 'var(--color-primary)',
+          color: 'white',
           marginBottom: 'var(--space-lg)',
           textAlign: 'center',
-          fontSize: 'var(--font-size-2xl)',
+          fontSize: 'var(--font-size-2xl)'
         }}>
           🔍 Consulta tus Boletas
         </h2>
@@ -175,7 +190,7 @@ export function SearchSection() {
 
             {/* INFO DEL CLIENTE */}
             <div style={{
-              backgroundColor: 'var(--color-gray-50)',
+              backgroundColor: 'var(--color-gray-500)',
               padding: 'var(--space-lg)',
               borderRadius: 'var(--border-radius-md)',
               marginBottom: 'var(--space-2xl)',
@@ -190,6 +205,11 @@ export function SearchSection() {
               <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
                 <strong>Teléfono:</strong> {resultados[0].telefono}
               </p>
+              {rifaInfo && (
+                <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
+                  <strong>Rifa:</strong> {rifaInfo.nombre}
+                </p>
+              )}
             </div>
 
             {/* LISTADO DE NÚMEROS */}
@@ -234,7 +254,9 @@ export function SearchSection() {
                     <div style={{
                       fontSize: 'var(--font-size-3xl)',
                       fontWeight: 'bold',
-                      marginBottom: 'var(--space-sm)'
+                      marginBottom: 'var(--space-sm)',
+                      fontFamily: 'monospace',
+                      letterSpacing: '2px'
                     }}>
                       {ticket.numeroRifa}
                     </div>
@@ -246,30 +268,6 @@ export function SearchSection() {
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* BOTÓN WHATSAPP */}
-              <div style={{ textAlign: 'center' }}>
-                <a
-                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=Hola, tengo los números: ${resultados.map(t => t.numeroRifa).join(', ')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-block',
-                    backgroundColor: '#25D366',
-                    color: 'white',
-                    padding: 'var(--space-md) var(--space-lg)',
-                    borderRadius: 'var(--border-radius-md)',
-                    textDecoration: 'none',
-                    fontWeight: 'bold',
-                    fontSize: 'var(--font-size-lg)',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#20ba5a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#25D366'}
-                >
-                  📲 Compartir mis Números por WhatsApp
-                </a>
               </div>
             </div>
           </div>

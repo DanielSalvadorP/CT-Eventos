@@ -7,8 +7,7 @@
 
 import { database } from './firebase';
 import { ref, set, get, update, child, remove } from 'firebase/database';
-import { generarNumeroAleatorio, validarRango } from './numberGenerator';
-
+import { generarNumeroAleatorio, validarRango, generarMultiplesNumeros } from './numberGenerator';
 /**
  * RIFAS - CRUD
  */
@@ -16,46 +15,48 @@ import { generarNumeroAleatorio, validarRango } from './numberGenerator';
 /**
  * Crea una nueva rifa
  */
+
+// ===== NUEVA FUNCIÓN crearRifa() =====
 export async function crearRifa(datosRifa) {
   try {
     // Validaciones
-    if (!datosRifa.nombre || !datosRifa.numeroInicio || !datosRifa.cantidadNumeros) {
-      throw new Error('Nombre, número inicial y cantidad son requeridos');
+    if (!datosRifa.nombre || !datosRifa.cantidadDigitos || !datosRifa.cantidadNumeros) {
+      throw new Error('Nombre, cantidad de dígitos y cantidad de números son requeridos');
     }
-
+ 
     if (!datosRifa.responsable) {
       throw new Error('El nombre del responsable es requerido');
     }
-
+ 
     if (!datosRifa.fecha) {
       throw new Error('La fecha de la rifa es requerida');
     }
-
+ 
     // Validar rango
-    const validacion = validarRango(datosRifa.numeroInicio, datosRifa.cantidadNumeros);
+    const validacion = validarRango(datosRifa.cantidadDigitos, datosRifa.cantidadNumeros);
     if (!validacion.valido) {
       throw new Error(validacion.error);
     }
-
+ 
     // Crear ID único para la rifa
     const rifaId = `rifa_${Date.now()}`;
-
+ 
     // Estructura de la rifa
     const nuevaRifa = {
       id: rifaId,
       nombre: datosRifa.nombre,
       responsable: datosRifa.responsable,
-      numeroInicio: Number(datosRifa.numeroInicio),
+      cantidadDigitos: Number(datosRifa.cantidadDigitos),
       cantidadNumeros: Number(datosRifa.cantidadNumeros),
       fecha: datosRifa.fecha,
       activa: datosRifa.activa || false,
       numerosUsados: [],
       fechaCreacion: new Date().toISOString()
     };
-
+ 
     // Guardar en Firebase
     await set(ref(database, `rifas/${rifaId}`), nuevaRifa);
-
+ 
     return {
       exito: true,
       rifaId,
@@ -65,6 +66,7 @@ export async function crearRifa(datosRifa) {
     throw new Error(`Error al crear rifa: ${error.message}`);
   }
 }
+ 
 
 /**
  * Obtiene todas las rifas
@@ -166,64 +168,6 @@ export async function eliminarRifa(rifaId) {
   }
 }
 
-/**
- * REGISTROS - por rifa
- */
-
-/**
- * Registra un comprador en una rifa específica
- */
-export async function registrarCompradorEnRifa(rifaId, datos) {
-  try {
-    // Validar datos
-    if (!datos.cedula || !datos.nombre || !datos.correo || !datos.telefono) {
-      throw new Error('Todos los campos son requeridos');
-    }
-
-    // Obtener rifa
-    const rifa = await obtenerRifa(rifaId);
-    if (!rifa) {
-      throw new Error('Rifa no encontrada');
-    }
-
-    // Generar número
-    const numeroRifa = generarNumeroAleatorio(
-      rifa.numeroInicio,
-      rifa.cantidadNumeros,
-      rifa.numerosUsados || []
-    );
-
-    if (!numeroRifa) {
-      throw new Error('No hay números disponibles en esta rifa');
-    }
-
-    // Crear registro
-    const registroId = `${datos.cedula}_${Date.now()}`;
-    const nuevoRegistro = {
-      cedula: datos.cedula,
-      nombre: datos.nombre,
-      correo: datos.correo,
-      telefono: datos.telefono,
-      numeroRifa,
-      fecha: new Date().toISOString()
-    };
-
-    // Guardar registro
-    await set(ref(database, `rifas/${rifaId}/registros/${registroId}`), nuevoRegistro);
-
-    // Actualizar números usados
-    const numerosUsados = [...(rifa.numerosUsados || []), numeroRifa];
-    await update(ref(database, `rifas/${rifaId}`), { numerosUsados });
-
-    return {
-      exito: true,
-      registro: nuevoRegistro,
-      registroId
-    };
-  } catch (error) {
-    throw new Error(`Error al registrar comprador: ${error.message}`);
-  }
-}
 
 /**
  * AGREGAR ESTA FUNCIÓN A rifaService.js (después de registrarCompradorEnRifa)
@@ -262,9 +206,8 @@ export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidad
 
     for (let i = 0; i < cantidadTickets; i++) {
       const numero = generarNumeroAleatorio(
-        rifa.numeroInicio,
-        rifa.cantidadNumeros,
-        numerosActuales
+      rifa.cantidadDigitos,    // ← CORRECTO
+      numerosActuales
       );
 
       if (!numero) {

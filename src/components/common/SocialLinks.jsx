@@ -56,7 +56,7 @@ export function SocialLinks({
               fontSize: '1.5rem',
               textDecoration: 'none',
               transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
-              boxShadow: 'var(--shadow-md)'
+              boxShadow: 'var(--shadow-xl)'
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'scale(1.1)';
