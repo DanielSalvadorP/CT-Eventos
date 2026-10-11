@@ -132,22 +132,6 @@ export function useRifa() {
   };
 
   /**
-   * BÚSQUEDAS - públicas (para la página pública)
-   * Estas SÍ necesitan buscar en la rifa activa, sin userId específico
-   */
-
-  const buscarTicketsDelCliente = async (tipo, valor) => {
-    try {
-      setError(null);
-      // Esta función es pública y busca en cualquier rifa activa
-      return await rifaService.buscarTicketsDelClienteEnRifaActiva(tipo, valor);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  /**
    * ESTADÍSTICAS
    */
 
@@ -176,8 +160,6 @@ export function useRifa() {
     obtenerRegistrosDeRifa,
     eliminarRegistroDeRifa,
 
-    // Búsquedas públicas
-    buscarTicketsDelCliente,
 
     // Estadísticas
     obtenerEstadisticas,
