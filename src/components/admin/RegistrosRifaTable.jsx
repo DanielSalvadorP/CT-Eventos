@@ -3,30 +3,39 @@
  * 
  * Muestra tabla de todos los registros de una rifa específica
  * Permite eliminar registros
+ * Requiere userId para acceder a los datos en Firebase
  */
 
 import { useState, useEffect } from 'react';
 import { Button } from '../common/Button';
+import { useAuth } from '../../hooks/useAuth';
 import { obtenerRegistrosDeRifa, eliminarRegistroDeRifa } from '../../services/rifaService';
 
-export function RegistrosRifaTable({ rifaId, rifaNombre, onClose }) {
+export function RegistrosRifaTable({ rifaId, rifaNombre, userId, onClose }) {
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const { user } = useAuth();
+
+  // Usar userId del prop si viene, si no del hook
+  const authUserId = userId || user?.uid;
 
   useEffect(() => {
-    cargarRegistros();
-  }, [rifaId]);
+    if (authUserId && rifaId) {
+      cargarRegistros();
+    }
+  }, [authUserId, rifaId]);
 
   const cargarRegistros = async () => {
     try {
       setLoading(true);
       setError(null);
-      const datos = await obtenerRegistrosDeRifa(rifaId);
+      const datos = await obtenerRegistrosDeRifa(authUserId, rifaId);
       setRegistros(datos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
     } catch (err) {
-      setError(err.message);
+      console.error('Error al obtener registros:', err);
+      setError(err.message || 'Error al cargar los registros');
     } finally {
       setLoading(false);
     }
@@ -35,11 +44,12 @@ export function RegistrosRifaTable({ rifaId, rifaNombre, onClose }) {
   const handleEliminarRegistro = async (registroId) => {
     try {
       setLoading(true);
-      await eliminarRegistroDeRifa(rifaId, registroId);
+      await eliminarRegistroDeRifa(authUserId, rifaId, registroId);
       setRegistros(registros.filter(r => r.id !== registroId));
       setConfirmDelete(null);
     } catch (err) {
-      setError(err.message);
+      console.error('Error al eliminar registro:', err);
+      setError(err.message || 'Error al eliminar el registro');
     } finally {
       setLoading(false);
     }
@@ -62,12 +72,27 @@ export function RegistrosRifaTable({ rifaId, rifaNombre, onClose }) {
       </div>
 
       <div className="card-body">
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#991b1b',
+            padding: 'var(--space-md)',
+            borderRadius: 'var(--border-radius-md)',
+            marginBottom: 'var(--space-lg)',
+            border: '1px solid #fecaca'
+          }}>
+            {error}
+          </div>
+        )}
 
         {loading && registros.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>Cargando registros...</p>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 'var(--space-2xl)' }}>
+            Cargando registros...
+          </p>
         ) : registros.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>No hay registros aún</p>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: 'var(--space-2xl)' }}>
+            No hay registros aún
+          </p>
         ) : (
           <>
             <p style={{ marginBottom: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
@@ -101,12 +126,12 @@ export function RegistrosRifaTable({ rifaId, rifaNombre, onClose }) {
                         {registro.nombre}
                       </td>
                       <td style={{ padding: 'var(--space-md)' }}>
-                        <a href={`mailto:${registro.correo}`} style={{ color: 'var(--color-primary)' }}>
+                        <a href={`mailto:${registro.correo}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
                           {registro.correo}
                         </a>
                       </td>
                       <td style={{ padding: 'var(--space-md)' }}>
-                        <a href={`tel:${registro.telefono}`} style={{ color: 'var(--color-primary)' }}>
+                        <a href={`tel:${registro.telefono}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
                           {registro.telefono}
                         </a>
                       </td>

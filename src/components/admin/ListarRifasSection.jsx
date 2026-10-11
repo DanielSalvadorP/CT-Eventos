@@ -2,22 +2,32 @@
  * ListarRifasSection Component
  * 
  * Muestra todas las rifas creadas
- * Permite activar/desactivar y eliminar
+ * Permite activar/desactivar, eliminar, finalizar y compartir
  */
 
 import { useState } from 'react';
 import { Button } from '../common/Button';
 import { RegistrosRifaTable } from './RegistrosRifaTable';
+import { useAuth } from '../../hooks/useAuth';
+import { FinalizarRifaModal } from './FinalizarRifaModal';
 
 export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRifa, onRefresh }) {
   const [rifaSeleccionada, setRifaSeleccionada] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [rifaAFinalizar, setRifaAFinalizar] = useState(null);
+  const { user } = useAuth();
+
+  const generarEnlaceCompartible = (rifa) => {
+    const enlace = `${window.location.origin}/rifa/${user.uid}/${rifa.id}`;
+    navigator.clipboard.writeText(enlace);
+    alert('Enlace copiado al portapapeles');
+  };
 
   if (!rifas || rifas.length === 0) {
     return (
       <div className="card">
         <div className="card-header">
-          <h3 >Mis Rifas</h3>
+          <h3>Mis Rifas</h3>
         </div>
         <div className="card-body" style={{ textAlign: 'center', padding: 'var(--space-3xl)' }}>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-lg)' }}>
@@ -75,7 +85,19 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
                       {rifa.numerosUsados?.length || 0}
                     </td>
                     <td style={{ padding: 'var(--space-md)', textAlign: 'center' }}>
-                      {rifa.activa ? (
+                      {rifa.finalizada ? (
+                        <span style={{ 
+                          backgroundColor: '#dbeafe',
+                          color: '#1e40af',
+                          padding: 'var(--space-sm) var(--space-md)',
+                          borderRadius: 'var(--border-radius-md)',
+                          display: 'inline-block',
+                          fontSize: 'var(--font-size-xs)',
+                          fontWeight: 'bold'
+                        }}>
+                          ✓ FINALIZADA
+                        </span>
+                      ) : rifa.activa ? (
                         <span style={{ 
                           backgroundColor: 'var(--color-success-light)',
                           color: '#065f46',
@@ -106,7 +128,7 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
                           size="small"
                           variant={rifa.activa ? 'secondary' : 'primary'}
                           onClick={() => onActivarRifa(rifa.id)}
-                          disabled={loading || rifa.activa}
+                          disabled={loading || rifa.activa || rifa.finalizada}
                         >
                           {rifa.activa ? 'Activa' : 'Activar'}
                         </Button>
@@ -117,6 +139,23 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
                           onClick={() => setRifaSeleccionada(rifa.id)}
                         >
                           Ver
+                        </Button>
+
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => generarEnlaceCompartible(rifa)}
+                        >
+                          🔗 Compartir
+                        </Button>
+
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => setRifaAFinalizar(rifa)}
+                          disabled={loading || rifa.finalizada}
+                        >
+                          {rifa.finalizada ? '✓ Finalizada' : '🏁 Finalizar'}
                         </Button>
 
                         <Button
@@ -140,6 +179,7 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
       {/* VER REGISTROS DE RIFA */}
       {rifaSeleccionada && (
         <RegistrosRifaTable
+          userId={user.uid}
           rifaId={rifaSeleccionada}
           rifaNombre={rifas.find(r => r.id === rifaSeleccionada)?.nombre}
           onClose={() => setRifaSeleccionada(null)}
@@ -195,6 +235,19 @@ export function ListarRifasSection({ rifas, loading, onActivarRifa, onEliminarRi
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL FINALIZAR RIFA */}
+      {rifaAFinalizar && (
+        <FinalizarRifaModal
+          rifa={rifaAFinalizar}
+          userId={user.uid}
+          onClose={() => setRifaAFinalizar(null)}
+          onSuccess={() => {
+            onRefresh(); // recarga la lista
+            setRifaAFinalizar(null);
+          }}
+        />
       )}
     </>
   );

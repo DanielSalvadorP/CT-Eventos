@@ -1,15 +1,21 @@
 /**
- * useRifa Hook - Versión 2.0
+ * useRifa Hook - Versión 3.0
  * 
- * Maneja la lógica de rifas múltiples
+ * Maneja la lógica de rifas múltiples por usuario
+ * Requiere autenticación Firebase
  */
 
 import { useState } from 'react';
+import { useAuth } from './useAuth';
 import * as rifaService from '../services/rifaService';
 
 export function useRifa() {
+  const { user } = useAuth();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Validar que hay usuario autenticado
+  const userId = user?.uid;
 
   /**
    * RIFAS
@@ -18,7 +24,8 @@ export function useRifa() {
   const crearRifa = async (datos) => {
     try {
       setError(null);
-      const resultado = await rifaService.crearRifa(datos);
+      if (!userId) throw new Error('Usuario no autenticado');
+      const resultado = await rifaService.crearRifa(userId, datos);
       return resultado;
     } catch (err) {
       setError(err.message);
@@ -29,7 +36,8 @@ export function useRifa() {
   const obtenerRifas = async () => {
     try {
       setError(null);
-      return await rifaService.obtenerTodasLasRifas();
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.obtenerTodasLasRifas(userId);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -39,7 +47,8 @@ export function useRifa() {
   const obtenerRifa = async (rifaId) => {
     try {
       setError(null);
-      return await rifaService.obtenerRifa(rifaId);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.obtenerRifa(userId, rifaId);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -49,7 +58,8 @@ export function useRifa() {
   const obtenerRifaActiva = async () => {
     try {
       setError(null);
-      return await rifaService.obtenerRifaActiva();
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.obtenerRifaActiva(userId);
     } catch (err) {
       setError(err.message);
       return null;
@@ -59,7 +69,8 @@ export function useRifa() {
   const activarRifa = async (rifaId) => {
     try {
       setError(null);
-      return await rifaService.marcarRifaComoActiva(rifaId);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.marcarRifaComoActiva(userId, rifaId);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -69,7 +80,8 @@ export function useRifa() {
   const eliminarRifa = async (rifaId) => {
     try {
       setError(null);
-      return await rifaService.eliminarRifa(rifaId);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.eliminarRifa(userId, rifaId);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -80,10 +92,16 @@ export function useRifa() {
    * REGISTROS
    */
 
-  const registrarCompradorEnRifaActiva = async (rifaId, datos) => {
+  const registrarCompradorMultiplesTickets = async (rifaId, datos, cantidadTickets) => {
     try {
       setError(null);
-      const resultado = await rifaService.registrarCompradorEnRifa(rifaId, datos);
+      if (!userId) throw new Error('Usuario no autenticado');
+      const resultado = await rifaService.registrarCompradorMultiplesTickets(
+        userId,
+        rifaId,
+        datos,
+        cantidadTickets
+      );
       return resultado;
     } catch (err) {
       setError(err.message);
@@ -91,10 +109,38 @@ export function useRifa() {
     }
   };
 
-  const buscarEnRifaActiva = async (tipo, valor) => {
+  const obtenerRegistrosDeRifa = async (rifaId) => {
     try {
       setError(null);
-      return await rifaService.buscarRegistroEnRifaActiva(tipo, valor);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.obtenerRegistrosDeRifa(userId, rifaId);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const eliminarRegistroDeRifa = async (rifaId, registroId) => {
+    try {
+      setError(null);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.eliminarRegistroDeRifa(userId, rifaId, registroId);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  /**
+   * BÚSQUEDAS - públicas (para la página pública)
+   * Estas SÍ necesitan buscar en la rifa activa, sin userId específico
+   */
+
+  const buscarTicketsDelCliente = async (tipo, valor) => {
+    try {
+      setError(null);
+      // Esta función es pública y busca en cualquier rifa activa
+      return await rifaService.buscarTicketsDelClienteEnRifaActiva(tipo, valor);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -108,40 +154,13 @@ export function useRifa() {
   const obtenerEstadisticas = async (rifaId) => {
     try {
       setError(null);
-      return await rifaService.obtenerEstadisticasRifa(rifaId);
+      if (!userId) throw new Error('Usuario no autenticado');
+      return await rifaService.obtenerEstadisticasRifa(userId, rifaId);
     } catch (err) {
       setError(err.message);
       throw err;
     }
   };
-
-  /**
-   * Registra múltiples tickets para un comprador
-   */
-  const registrarCompradorMultiplesTickets = async (rifaId, datos, cantidadTickets) => {
-    try {
-      setError(null);
-      const resultado = await rifaService.registrarCompradorMultiplesTickets(rifaId, datos, cantidadTickets);
-      return resultado;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
- 
-  /**
-   * Busca todos los tickets de un cliente en rifa activa
-   */
-  const buscarTicketsDelCliente = async (tipo, valor) => {
-    try {
-      setError(null);
-      return await rifaService.buscarTicketsDelClienteEnRifaActiva(tipo, valor);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  };
- 
 
   return {
     // Rifas
@@ -151,20 +170,21 @@ export function useRifa() {
     obtenerRifaActiva,
     activarRifa,
     eliminarRifa,
-    
+
     // Registros
-    registrarCompradorEnRifaActiva,
-    buscarEnRifaActiva,
-    
+    registrarCompradorMultiplesTickets,
+    obtenerRegistrosDeRifa,
+    eliminarRegistroDeRifa,
+
+    // Búsquedas públicas
+    buscarTicketsDelCliente,
+
     // Estadísticas
     obtenerEstadisticas,
-    
-// NUEVAS:
-    registrarCompradorMultiplesTickets,
-    buscarTicketsDelCliente,
 
     // Estado
     error,
-    loading
+    loading,
+    userId
   };
 }

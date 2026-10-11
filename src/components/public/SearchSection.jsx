@@ -1,16 +1,17 @@
 /**
- * SearchSection Component - Versión 3.0
+ * SearchSection Component - Versión 4.0
  * 
- * Busca tickets de un cliente y muestra TODOS sus números
- * Con formato de dígitos configurables
+ * Busca tickets de un cliente
+ * Puede buscar en rifa activa (sin props) o en rifa específica (con userId y rifaId)
  */
 
 import { useState } from 'react';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { useRifa } from '../../hooks/useRifa';
+import { obtenerRifa, obtenerRegistrosDeRifa } from '../../services/rifaService';
 
-export function SearchSection() {
+export function SearchSection({ userId, rifaId }) {
   const [tipoSearch, setTipoSearch] = useState('correo');
   const [valor, setValor] = useState('');
   const [resultados, setResultados] = useState([]);
@@ -36,17 +37,46 @@ export function SearchSection() {
     try {
       setLoading(true);
       
-      // Obtener rifa activa para saber cantidad de dígitos
-      const rifaActiva = await obtenerRifaActiva();
-      if (!rifaActiva) {
-        setError('No hay rifa activa en este momento');
-        setBuscado(true);
-        return;
+      let rifa;
+      let tickets;
+
+      // Si viene userId y rifaId, buscar en esa rifa específica
+      if (userId && rifaId) {
+        rifa = await obtenerRifa(userId, rifaId);
+        if (!rifa) {
+          setError('La rifa no existe o no está disponible');
+          setBuscado(true);
+          return;
+        }
+        
+        // Buscar tickets en registros de esa rifa
+        const registros = await obtenerRegistrosDeRifa(userId, rifaId);
+        
+        if (registros && registros.length > 0) {
+          // Filtrar por correo o teléfono
+          tickets = registros.filter(reg => {
+            if (tipoSearch === 'correo') {
+              return reg.correo.toLowerCase() === valor.toLowerCase();
+            } else {
+              return reg.telefono === valor;
+            }
+          });
+        } else {
+          tickets = [];
+        }
+      } else {
+        // Comportamiento original: buscar en rifa activa
+        rifa = await obtenerRifaActiva();
+        if (!rifa) {
+          setError('No hay rifa activa en este momento');
+          setBuscado(true);
+          return;
+        }
+        
+        tickets = await buscarTicketsDelCliente(tipoSearch, valor);
       }
-      
-      setRifaInfo(rifaActiva);
-      
-      const tickets = await buscarTicketsDelCliente(tipoSearch, valor);
+
+      setRifaInfo(rifa);
 
       if (tickets && tickets.length > 0) {
         setResultados(tickets);
@@ -56,7 +86,8 @@ export function SearchSection() {
 
       setBuscado(true);
     } catch (err) {
-      setError(err.message);
+      console.error('Error en búsqueda:', err);
+      setError(err.message || 'Error al realizar la búsqueda');
     } finally {
       setLoading(false);
     }
@@ -70,7 +101,7 @@ export function SearchSection() {
       marginBottom: 'var(--space-3xl)',
       borderRadius: 'var(--border-radius-lg)',
       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-      overflow: 'hidden'  // ← Agrega esto
+      overflow: 'hidden'
     }}>
       <div className="container">
         <h2 style={{

@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';  // ← NUEVO
 
 // Validar que las variables de entorno existan
 const requiredEnvVars = [
@@ -30,12 +31,14 @@ const firebaseConfig = {
 // Inicializar Firebase
 let app;
 let database;
+let auth;
 
 try {
   app = initializeApp(firebaseConfig);
   database = getDatabase(app);
+  auth = getAuth(app);
 } catch (error) {
   console.error('Error inicializando Firebase:', error);
 }
 
-export { app, database };
+export { app, database, auth };  // ← Exporta también auth

@@ -1,10 +1,10 @@
 /**
- * AdminPanel Component - Versión 2.0
+ * AdminPanel Component - Versión 3.0
  * 
  * Panel de administración con:
  * - Crear nuevas rifas
  * - Ver y gestionar rifas existentes
- * - Registrar compradores en rifa activa
+ * - Registrar compradores en CUALQUIER rifa (selector)
  * - Cambiar contraseña
  */
 
@@ -23,38 +23,42 @@ export function AdminPanel() {
   const [rifas, setRifas] = useState([]);
   const [rifaActiva, setRifaActiva] = useState(null);
   const [message, setMessage] = useState(null);
-
+  const { logout, user } = useAuth();
+  
   const { 
     crearRifa, 
     obtenerRifas, 
     activarRifa, 
     eliminarRifa,
-    registrarCompradorMultiplesTickets,  // ← AGREGAR ESTA
+    registrarCompradorMultiplesTickets,
     obtenerRifaActiva
   } = useRifa();
-
-  const { logout } = useAuth();
-
-  // Cargar rifas al montar el componente
-  useEffect(() => {
-    cargarRifas();
-  }, []);
 
   const cargarRifas = async () => {
     try {
       setLoading(true);
+      console.log('Intentando cargar rifas...');
       const datos = await obtenerRifas();
+      console.log('Rifas cargadas:', datos);
       setRifas(datos);
       
-      // Obtener rifa activa
       const activa = await obtenerRifaActiva();
+      console.log('Rifa activa:', activa);
       setRifaActiva(activa);
     } catch (error) {
+      console.error('Error al cargar rifas:', error);
       setMessage({ tipo: 'error', texto: error.message });
     } finally {
       setLoading(false);
     }
   };
+
+  // Cargar rifas al montar el componente
+  useEffect(() => {
+    if (user) {
+      cargarRifas();
+    }
+  }, [user]);
 
   const handleCrearRifa = async (datos) => {
     try {
@@ -109,25 +113,30 @@ export function AdminPanel() {
     }
   };
 
-  const handleRegistrarComprador = async (datos) => {
-  try {
-    setLoading(true);
-    
-    if (!rifaActiva) {
-      throw new Error('No hay rifa activa. Activa una rifa primero.');
-    }
-
-    const resultado = await registrarCompradorMultiplesTickets(
-      rifaActiva.id,
-      datos,
-      datos.cantidadTickets || 1
-    );
-      setMessage({ 
-  tipo: 'exito', 
-  texto: `${resultado.totalTickets} ticket(s) registrado(s) exitosamente. Números: ${resultado.numerosAsignados.join(', ')}` 
-});
+  const handleRegistrarComprador = async (datos, rifaId) => {
+    try {
+      setLoading(true);
       
-      return resultado;
+      if (!rifaId) {
+        throw new Error('Por favor selecciona una rifa');
+      }
+
+      // Llamar al servicio con el rifaId seleccionado
+      const resultado = await registrarCompradorMultiplesTickets(
+        rifaId,
+        datos,
+        datos.cantidadTickets || 1
+      );
+
+      setMessage({ 
+        tipo: 'exito', 
+        texto: `${resultado.totalTickets} ticket(s) registrado(s) exitosamente. Números: ${resultado.numerosAsignados.join(', ')}` 
+      });
+      
+      // Recargar para actualizar números usados
+      await cargarRifas();
+      
+      return { exito: true, ...resultado };
     } catch (error) {
       const resultado = { exito: false, error: error.message };
       setMessage({ tipo: 'error', texto: error.message });
@@ -155,13 +164,18 @@ export function AdminPanel() {
         <div className="container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 style={{ margin: 0 }}>🎰 Panel de Administración</h1>
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={handleLogout}
-            >
-              Cerrar Sesión
-            </Button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-lg)' }}>
+              <span style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
+                👤 {user?.displayName || user?.email}
+              </span>
+              <Button
+                variant="secondary"
+                size="small"
+                onClick={handleLogout}
+              >
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -218,7 +232,8 @@ export function AdminPanel() {
             ➕ Crear Rifa
           </Button>
 
-          {rifaActiva && (
+          {/* CAMBIO: Ya no depende de rifaActiva, solo de tener rifas */}
+          {rifas.length > 0 && (
             <Button
               variant={tab === 'registrar' ? 'primary' : 'secondary'}
               size="small"
@@ -255,9 +270,10 @@ export function AdminPanel() {
           />
         )}
 
-        {tab === 'registrar' && rifaActiva && (
+        {/* CAMBIO: Ahora pasa todasLasRifas en lugar de rifaActiva */}
+        {tab === 'registrar' && rifas.length > 0 && (
           <RegistrarSection
-            rifaActiva={rifaActiva}
+            todasLasRifas={rifas}
             onRegistrar={handleRegistrarComprador}
             loading={loading}
           />

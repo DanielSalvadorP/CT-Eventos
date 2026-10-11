@@ -1,47 +1,30 @@
-/**
- * Rifa Service - Versión 2.0
- * 
- * Maneja múltiples rifas en lugar de una sola
- * Cada rifa tiene su propia configuración y registros
- */
-
 import { database } from './firebase';
 import { ref, set, get, update, child, remove } from 'firebase/database';
 import { generarNumeroAleatorio, validarRango, generarMultiplesNumeros } from './numberGenerator';
-/**
- * RIFAS - CRUD
- */
 
 /**
- * Crea una nueva rifa
+ * Crea una nueva rifa bajo el usuario actual
  */
-
-// ===== NUEVA FUNCIÓN crearRifa() =====
-export async function crearRifa(datosRifa) {
+export async function crearRifa(userId, datosRifa) {
   try {
-    // Validaciones
+    if (!userId) throw new Error('Usuario no autenticado');
     if (!datosRifa.nombre || !datosRifa.cantidadDigitos || !datosRifa.cantidadNumeros) {
       throw new Error('Nombre, cantidad de dígitos y cantidad de números son requeridos');
     }
- 
     if (!datosRifa.responsable) {
       throw new Error('El nombre del responsable es requerido');
     }
- 
     if (!datosRifa.fecha) {
       throw new Error('La fecha de la rifa es requerida');
     }
- 
-    // Validar rango
+
     const validacion = validarRango(datosRifa.cantidadDigitos, datosRifa.cantidadNumeros);
     if (!validacion.valido) {
       throw new Error(validacion.error);
     }
- 
-    // Crear ID único para la rifa
+
     const rifaId = `rifa_${Date.now()}`;
- 
-    // Estructura de la rifa
+
     const nuevaRifa = {
       id: rifaId,
       nombre: datosRifa.nombre,
@@ -53,10 +36,10 @@ export async function crearRifa(datosRifa) {
       numerosUsados: [],
       fechaCreacion: new Date().toISOString()
     };
- 
-    // Guardar en Firebase
-    await set(ref(database, `rifas/${rifaId}`), nuevaRifa);
- 
+
+    // ← CAMBIO: guarda bajo usuarios/{userId}/rifas/
+    await set(ref(database, `usuarios/${userId}/rifas/${rifaId}`), nuevaRifa);
+
     return {
       exito: true,
       rifaId,
@@ -66,14 +49,16 @@ export async function crearRifa(datosRifa) {
     throw new Error(`Error al crear rifa: ${error.message}`);
   }
 }
- 
 
 /**
- * Obtiene todas las rifas
+ * Obtiene todas las rifas del usuario actual
  */
-export async function obtenerTodasLasRifas() {
+export async function obtenerTodasLasRifas(userId) {
   try {
-    const rifasRef = ref(database, 'rifas');
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    // ← CAMBIO: lee de usuarios/{userId}/rifas/
+    const rifasRef = ref(database, `usuarios/${userId}/rifas`);
     const snapshot = await get(rifasRef);
 
     if (snapshot.exists()) {
@@ -91,11 +76,13 @@ export async function obtenerTodasLasRifas() {
 }
 
 /**
- * Obtiene una rifa específica por ID
+ * Obtiene una rifa específica
  */
-export async function obtenerRifa(rifaId) {
+export async function obtenerRifa(userId, rifaId) {
   try {
-    const rifaRef = ref(database, `rifas/${rifaId}`);
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    const rifaRef = ref(database, `usuarios/${userId}/rifas/${rifaId}`);
     const snapshot = await get(rifaRef);
 
     if (snapshot.exists()) {
@@ -109,11 +96,13 @@ export async function obtenerRifa(rifaId) {
 }
 
 /**
- * Obtiene la rifa activa
+ * Obtiene la rifa activa del usuario
  */
-export async function obtenerRifaActiva() {
+export async function obtenerRifaActiva(userId) {
   try {
-    const rifas = await obtenerTodasLasRifas();
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    const rifas = await obtenerTodasLasRifas(userId);
     return rifas.find(r => r.activa) || null;
   } catch (error) {
     throw new Error(`Error al obtener rifa activa: ${error.message}`);
@@ -121,34 +110,21 @@ export async function obtenerRifaActiva() {
 }
 
 /**
- * Actualiza una rifa (marcar activa/inactiva, cambiar nombre, etc)
- */
-export async function actualizarRifa(rifaId, datos) {
-  try {
-    await update(ref(database, `rifas/${rifaId}`), datos);
-    return { exito: true };
-  } catch (error) {
-    throw new Error(`Error al actualizar rifa: ${error.message}`);
-  }
-}
-
-/**
  * Marca una rifa como activa (desactiva las demás)
  */
-export async function marcarRifaComoActiva(rifaId) {
+export async function marcarRifaComoActiva(userId, rifaId) {
   try {
-    // Obtener todas las rifas
-    const rifas = await obtenerTodasLasRifas();
+    if (!userId) throw new Error('Usuario no autenticado');
 
-    // Desactivar todas excepto la nueva
+    const rifas = await obtenerTodasLasRifas(userId);
+
     for (const rifa of rifas) {
       if (rifa.id !== rifaId) {
-        await update(ref(database, `rifas/${rifa.id}`), { activa: false });
+        await update(ref(database, `usuarios/${userId}/rifas/${rifa.id}`), { activa: false });
       }
     }
 
-    // Activar la seleccionada
-    await update(ref(database, `rifas/${rifaId}`), { activa: true });
+    await update(ref(database, `usuarios/${userId}/rifas/${rifaId}`), { activa: true });
 
     return { exito: true };
   } catch (error) {
@@ -159,40 +135,35 @@ export async function marcarRifaComoActiva(rifaId) {
 /**
  * Elimina una rifa completamente
  */
-export async function eliminarRifa(rifaId) {
+export async function eliminarRifa(userId, rifaId) {
   try {
-    await remove(ref(database, `rifas/${rifaId}`));
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    await remove(ref(database, `usuarios/${userId}/rifas/${rifaId}`));
     return { exito: true };
   } catch (error) {
     throw new Error(`Error al eliminar rifa: ${error.message}`);
   }
 }
 
-
 /**
- * AGREGAR ESTA FUNCIÓN A rifaService.js (después de registrarCompradorEnRifa)
- * 
- * Registra múltiples tickets para un mismo comprador
+ * Registra múltiples tickets para un comprador
  */
-
-export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidadTickets) {
+export async function registrarCompradorMultiplesTickets(userId, rifaId, datos, cantidadTickets) {
   try {
-    // Validaciones
+    if (!userId) throw new Error('Usuario no autenticado');
     if (!datos.cedula || !datos.nombre || !datos.correo || !datos.telefono) {
       throw new Error('Todos los campos son requeridos');
     }
-
     if (cantidadTickets <= 0) {
       throw new Error('La cantidad debe ser mayor a 0');
     }
 
-    // Obtener rifa
-    const rifa = await obtenerRifa(rifaId);
+    const rifa = await obtenerRifa(userId, rifaId);
     if (!rifa) {
       throw new Error('Rifa no encontrada');
     }
 
-    // Validar disponibilidad
     const numerosDisponibles = rifa.cantidadNumeros - (rifa.numerosUsados?.length || 0);
     if (cantidadTickets > numerosDisponibles) {
       throw new Error(
@@ -200,15 +171,11 @@ export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidad
       );
     }
 
-    // Generar N números aleatorios únicos
     const numerosGenerados = [];
     const numerosActuales = [...(rifa.numerosUsados || [])];
 
     for (let i = 0; i < cantidadTickets; i++) {
-      const numero = generarNumeroAleatorio(
-      rifa.cantidadDigitos,    // ← CORRECTO
-      numerosActuales
-      );
+      const numero = generarNumeroAleatorio(rifa.cantidadDigitos, numerosActuales);
 
       if (!numero) {
         throw new Error(`Error al generar número ${i + 1}`);
@@ -218,7 +185,6 @@ export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidad
       numerosActuales.push(numero);
     }
 
-    // Crear registros
     const registrosCreados = [];
     const timestamps = Date.now();
 
@@ -231,20 +197,20 @@ export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidad
         telefono: datos.telefono,
         numeroRifa: numerosGenerados[i],
         fecha: new Date().toISOString(),
-        posicionCompra: i + 1, // Para saber cuál fue el ticket 1, 2, 3, etc
-        compraTotal: cantidadTickets // Referencia al total comprado
+        posicionCompra: i + 1,
+        compraTotal: cantidadTickets
       };
 
-      // Guardar registro
-      await set(ref(database, `rifas/${rifaId}/registros/${registroId}`), nuevoRegistro);
+      // ← CAMBIO: guarda bajo usuarios/{userId}/rifas/{rifaId}/registros/
+      await set(ref(database, `usuarios/${userId}/rifas/${rifaId}/registros/${registroId}`), nuevoRegistro);
       registrosCreados.push({
         id: registroId,
         ...nuevoRegistro
       });
     }
 
-    // Actualizar números usados
-    await update(ref(database, `rifas/${rifaId}`), { numerosUsados: numerosActuales });
+    // ← CAMBIO: actualiza en usuarios/{userId}/rifas/{rifaId}
+    await update(ref(database, `usuarios/${userId}/rifas/${rifaId}`), { numerosUsados: numerosActuales });
 
     return {
       exito: true,
@@ -257,13 +223,14 @@ export async function registrarCompradorMultiplesTickets(rifaId, datos, cantidad
   }
 }
 
-
 /**
  * Obtiene todos los registros de una rifa
  */
-export async function obtenerRegistrosDeRifa(rifaId) {
+export async function obtenerRegistrosDeRifa(userId, rifaId) {
   try {
-    const registrosRef = ref(database, `rifas/${rifaId}/registros`);
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    const registrosRef = ref(database, `usuarios/${userId}/rifas/${rifaId}/registros`);
     const snapshot = await get(registrosRef);
 
     if (snapshot.exists()) {
@@ -284,91 +251,22 @@ export async function obtenerRegistrosDeRifa(rifaId) {
 }
 
 /**
- * Busca un registro en la rifa activa
- */
-export async function buscarRegistroEnRifaActiva(tipo, valor) {
-  try {
-    // Obtener rifa activa
-    const rifaActiva = await obtenerRifaActiva();
-    if (!rifaActiva) {
-      return null;
-    }
-
-    // Obtener registros
-    const registros = await obtenerRegistrosDeRifa(rifaActiva.id);
-
-    // Buscar
-    return registros.find(reg => {
-      if (tipo === 'correo') {
-        return reg.correo && reg.correo.toLowerCase() === valor.toLowerCase();
-      } else if (tipo === 'telefono') {
-        return reg.telefono === valor;
-      }
-      return false;
-    }) || null;
-  } catch (error) {
-    throw new Error(`Error al buscar registro: ${error.message}`);
-  }
-}
-
-
-/**
- * AGREGAR ESTA FUNCIÓN A rifaService.js (después de buscarRegistroEnRifaActiva)
- * 
- * Busca todos los tickets de un cliente en la rifa activa
- */
-
-export async function buscarTicketsDelClienteEnRifaActiva(tipo, valor) {
-  try {
-    // Obtener rifa activa
-    const rifaActiva = await obtenerRifaActiva();
-    if (!rifaActiva) {
-      return [];
-    }
-
-    // Obtener registros
-    const registros = await obtenerRegistrosDeRifa(rifaActiva.id);
-
-    // Filtrar por tipo (correo o teléfono)
-    const ticketsDelCliente = registros.filter(reg => {
-      if (tipo === 'correo') {
-        return reg.correo && reg.correo.toLowerCase() === valor.toLowerCase();
-      } else if (tipo === 'telefono') {
-        return reg.telefono === valor;
-      }
-      return false;
-    });
-
-    // Ordenar por fecha y posición de compra
-    return ticketsDelCliente.sort((a, b) => {
-      if (a.fecha === b.fecha) {
-        return (a.posicionCompra || 0) - (b.posicionCompra || 0);
-      }
-      return new Date(a.fecha) - new Date(b.fecha);
-    });
-  } catch (error) {
-    throw new Error(`Error al buscar tickets: ${error.message}`);
-  }
-}
-
-/**
  * Elimina un registro de una rifa
  */
-export async function eliminarRegistroDeRifa(rifaId, registroId) {
+export async function eliminarRegistroDeRifa(userId, rifaId, registroId) {
   try {
-    // Obtener registro para obtener el número
-    const rifa = await obtenerRifa(rifaId);
-    const registros = await obtenerRegistrosDeRifa(rifaId);
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    const rifa = await obtenerRifa(userId, rifaId);
+    const registros = await obtenerRegistrosDeRifa(userId, rifaId);
     const registro = registros.find(r => r.id === registroId);
 
     if (registro) {
-      // Remover número de numerosUsados
       const numerosUsados = (rifa.numerosUsados || []).filter(n => n !== registro.numeroRifa);
-      await update(ref(database, `rifas/${rifaId}`), { numerosUsados });
+      await update(ref(database, `usuarios/${userId}/rifas/${rifaId}`), { numerosUsados });
     }
 
-    // Eliminar registro
-    await remove(ref(database, `rifas/${rifaId}/registros/${registroId}`));
+    await remove(ref(database, `usuarios/${userId}/rifas/${rifaId}/registros/${registroId}`));
 
     return { exito: true };
   } catch (error) {
@@ -377,16 +275,14 @@ export async function eliminarRegistroDeRifa(rifaId, registroId) {
 }
 
 /**
- * ESTADÍSTICAS
- */
-
-/**
  * Obtiene estadísticas de una rifa
  */
-export async function obtenerEstadisticasRifa(rifaId) {
+export async function obtenerEstadisticasRifa(userId, rifaId) {
   try {
-    const rifa = await obtenerRifa(rifaId);
-    const registros = await obtenerRegistrosDeRifa(rifaId);
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    const rifa = await obtenerRifa(userId, rifaId);
+    const registros = await obtenerRegistrosDeRifa(userId, rifaId);
 
     const totalNumeros = rifa.cantidadNumeros;
     const numerosUsados = rifa.numerosUsados?.length || 0;
@@ -402,4 +298,18 @@ export async function obtenerEstadisticasRifa(rifaId) {
   } catch (error) {
     throw new Error(`Error al obtener estadísticas: ${error.message}`);
   }
+}
+
+export async function finalizarRifa(userId, rifaId, numeroGanador) {
+  const database = getDatabase();
+  const rifaRef = ref(database, `usuarios/${userId}/rifas/${rifaId}`);
+
+  const ahora = new Date().toISOString();
+
+  return update(rifaRef, {
+    finalizada: true,
+    numeroGanador: numeroGanador,
+    fechaFinalizacion: ahora,
+    modificadoEn: ahora
+  });
 }
