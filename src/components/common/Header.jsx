@@ -10,7 +10,7 @@ export function Header({ isAdmin = false, onLogout }) {
       alignItems: 'center',
       justifyContent: 'center'
     }}>
-      <div style={{
+      <div className='contenedorHeader' style={{
         display: 'flex',
         width: '100%',
         justifyContent: 'space-between',
@@ -53,7 +53,7 @@ export function Header({ isAdmin = false, onLogout }) {
           onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            FAQs
+            Preguntas
           </Link>
         </div>
       </div>

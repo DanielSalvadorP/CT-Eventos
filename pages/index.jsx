@@ -8,7 +8,7 @@
 import Head from 'next/head';
 import { Header } from '../src/components/common/Header';
 import { SocialSection } from '../src/components/public/SocialSection';
-import { CTABanner } from '../src/components/public/CTABanner';
+import { CTABannerInicio } from '../src/components/public/CTABannerInicio';
 import Link from 'next/link';
 export default function Home() {
   /*icono */
@@ -27,7 +27,7 @@ export default function Home() {
       <Header isAdmin={false} />
       
       <main>
-        <CTABanner />
+        <CTABannerInicio />
         <SocialSection />
       </main>
 
