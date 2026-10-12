@@ -1,8 +1,9 @@
 /**
- * RegistrarSection Component - Versión 5.0
+ * RegistrarSection Component - Versión 5.1
  * 
  * Registra compradores con múltiples tickets
  * NUEVO: Permite seleccionar a qué rifa registrar el comprador
+ * MEJORADO: Campo de cantidad de tickets permite borrar y escribir libremente
  */
 
 import { useState, useEffect } from 'react';
@@ -17,7 +18,7 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
     nombre: '',
     correo: '',
     telefono: '',
-    cantidadTickets: 1
+    cantidadTickets: ''
   });
 
   const [error, setError] = useState(null);
@@ -37,7 +38,7 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'cantidadTickets' ? Math.max(1, parseInt(value) || 1) : value
+      [name]: value
     }));
     setError(null);
   };
@@ -74,22 +75,27 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
       return;
     }
 
-    if (formData.cantidadTickets <= 0) {
-      setError('La cantidad debe ser mayor a 0');
+    // Validar cantidad de tickets
+    const cantidad = parseInt(formData.cantidadTickets) || 0;
+    if (cantidad <= 0) {
+      setError('La cantidad debe ser un número mayor a 0');
       return;
     }
 
     // Validar disponibilidad
     const disponibles = rifa.cantidadNumeros - (rifa.numerosUsados?.length || 0);
-    if (formData.cantidadTickets > disponibles) {
+    if (cantidad > disponibles) {
       setError(
-        `No hay suficientes números disponibles. Solicitados: ${formData.cantidadTickets}, Disponibles: ${disponibles}`
+        `No hay suficientes números disponibles. Solicitados: ${cantidad}, Disponibles: ${disponibles}`
       );
       return;
     }
 
     // Llamar servicio - AHORA PASA rifaId
-    const resultado = await onRegistrar(formData, rifaSeleccionada);
+    const resultado = await onRegistrar(
+      { ...formData, cantidadTickets: cantidad },
+      rifaSeleccionada
+    );
 
     if (resultado.exito) {
       setExito(true);
@@ -99,7 +105,7 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
         nombre: '',
         correo: '',
         telefono: '',
-        cantidadTickets: 1
+        cantidadTickets: ''
       });
 
       setTimeout(() => {
@@ -127,6 +133,7 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
   }
 
   const disponibles = rifa ? rifa.cantidadNumeros - (rifa.numerosUsados?.length || 0) : 0;
+  const cantidadDisplay = formData.cantidadTickets || '1';
 
   return (
     <div className="card">
@@ -164,7 +171,7 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
               border: '1px solid var(--color-gray-400)',
               fontSize: 'var(--font-size-base)',
               backgroundColor: 'white',
-              color: 'var(--color-text-primary)',
+              color: 'grey',
               cursor: 'pointer'
             }}
             disabled={loading}
@@ -300,14 +307,15 @@ export function RegistrarSection({ todasLasRifas = [], onRegistrar, loading }) {
                 disabled={loading}
                 className="btn-block"
               >
-                Registrar {formData.cantidadTickets} Ticket{formData.cantidadTickets !== 1 ? 's' : ''}
+                Registrar {cantidadDisplay} Ticket{cantidadDisplay !== '1' ? 's' : ''}
               </Button>
             </form>
 
             <div style={{
               marginTop: 'var(--space-2xl)',
               padding: 'var(--space-lg)',
-              backgroundColor: 'var(--color-gray-500)',
+              backgroundColor: 'white',
+              color:'grey',
               borderRadius: 'var(--border-radius-md)',
               borderLeft: '4px solid var(--color-primary)'
             }}>

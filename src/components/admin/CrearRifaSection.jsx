@@ -179,7 +179,8 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
             padding: 'var(--space-lg)',
             borderRadius: 'var(--border-radius-md)',
             marginBottom: 'var(--space-lg)',
-            borderLeft: '4px solid var(--color-primary)'
+            borderLeft: '4px solid var(--color-primary)',
+            color: 'grey'
           }}>
             <p style={{ margin: 0, marginBottom: 'var(--space-sm)', fontWeight: 'bold' }}>
               📋 Información del formato:
