@@ -18,7 +18,7 @@ export function Header({ isAdmin = false, onLogout }) {
       }}>
         {/* LOGO */}
         <div style={{
-          width: '300px',
+          width: '200px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start'
@@ -38,7 +38,7 @@ export function Header({ isAdmin = false, onLogout }) {
 
         {/* PREGUNTAS FRECUENTES */}
         <div style={{
-          width: '300px',
+          width: '200px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end',
@@ -53,7 +53,7 @@ export function Header({ isAdmin = false, onLogout }) {
           onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            Preguntas Frecuentes
+            FAQs
           </Link>
         </div>
       </div>
