@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { obtenerRifaPublica } from '../../../src/services/rifaService';
 
 import { CTABanner } from '../../../src/components/public/CTABanner';
 import { Header } from '../../../src/components/common/Header';
