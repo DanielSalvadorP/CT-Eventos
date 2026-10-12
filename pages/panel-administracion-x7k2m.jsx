@@ -80,7 +80,7 @@ const icono = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXH
           textAlign: 'center',
           borderTop: '1px solid var(--color-gray-200)'
         }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', margin: 0 }}>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'grey', margin: 0 }}>
             © 2025 @EL DEL CT Eventos. Panel Administrativo.
           </p>
         </footer>

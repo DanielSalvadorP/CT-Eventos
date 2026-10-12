@@ -240,7 +240,7 @@ export function AdminPanel() {
             size="small"
             onClick={() => setTab('rifas')}
           >
-            📋 Mis Rifas
+            Mis Rifas
           </Button>
 
           <Button
@@ -248,7 +248,7 @@ export function AdminPanel() {
             size="small"
             onClick={() => setTab('crear')}
           >
-            ➕ Crear Rifa
+            Crear Rifa
           </Button>
 
           {/* CAMBIO: Ya no depende de rifaActiva, solo de tener rifas */}
@@ -258,7 +258,7 @@ export function AdminPanel() {
               size="small"
               onClick={() => setTab('registrar')}
             >
-              👤 Registrar Comprador
+              Registrar Comprador
             </Button>
           )}
         </div>
