@@ -278,13 +278,24 @@ export async function eliminarRegistroDeRifa(userId, rifaId, registroId) {
  * Obtiene una rifa específica PÚBLICAMENTE (sin autenticación)
  * Usada para la página pública de consulta
  */
-export async function obtenerRifaPublica(rifaId) {
+export async function obtenerRifaPublica(rifaId, userId = null) {
   try {
+    // Primero intenta leer de la ruta pública
     const rifaRef = ref(database, `rifas/${rifaId}`);
-    const snapshot = await get(rifaRef);
+    let snapshot = await get(rifaRef);
 
     if (snapshot.exists()) {
       return snapshot.val();
+    }
+
+    // Si no existe y tenemos userId, intenta la ruta privada
+    if (userId) {
+      const rifaRefPrivada = ref(database, `usuarios/${userId}/rifas/${rifaId}`);
+      snapshot = await get(rifaRefPrivada);
+      
+      if (snapshot.exists()) {
+        return snapshot.val();
+      }
     }
 
     return null;
