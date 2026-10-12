@@ -66,7 +66,6 @@ export function AdminPanel() {
       const resultado = await crearRifa(datos);
       
       if (resultado.exito) {
-        setMessage({ tipo: 'exito', texto: 'Rifa creada exitosamente' });
         
         // Si la marcan como activa, actualizar referencia
         if (datos.activa) {

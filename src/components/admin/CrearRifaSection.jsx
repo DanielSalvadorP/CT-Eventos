@@ -1,5 +1,5 @@
 /**
- * CrearRifaSection Component - Versión 2.0
+ * CrearRifaSection Component - Versión 3.0
  * 
  * Permite crear una nueva rifa con dígitos configurables
  */
@@ -28,7 +28,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       [name]: type === 'checkbox' 
         ? checked 
         : (name === 'cantidadDigitos' || name === 'cantidadNumeros')
-          ? Math.max(1, parseInt(value) || 1)
+          ? value
           : value
     }));
   };
@@ -38,7 +38,6 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
     setError(null);
     setExito(false);
 
-    // Validaciones
     if (!formData.nombre.trim()) {
       setError('El nombre de la rifa es requerido');
       return;
@@ -54,26 +53,32 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       return;
     }
 
-    if (formData.cantidadDigitos <= 0) {
+    const cantidadDigitos = parseInt(formData.cantidadDigitos) || 0;
+    const cantidadNumeros = parseInt(formData.cantidadNumeros) || 0;
+
+    if (cantidadDigitos <= 0) {
       setError('La cantidad de dígitos debe ser mayor a 0');
       return;
     }
 
-    if (formData.cantidadNumeros <= 0) {
+    if (cantidadNumeros <= 0) {
       setError('La cantidad de números debe ser mayor a 0');
       return;
     }
 
-    // Validar que no haya más tickets que dígitos permitan
-    const maxPosibles = Math.pow(10, formData.cantidadDigitos);
-    if (formData.cantidadNumeros > maxPosibles) {
+    const maxPosibles = Math.pow(10, cantidadDigitos);
+    if (cantidadNumeros > maxPosibles) {
       setError(
-        `Con ${formData.cantidadDigitos} dígitos, máximo ${maxPosibles.toLocaleString('es-ES')} tickets. Ingresaste ${formData.cantidadNumeros.toLocaleString('es-ES')}`
+        `Con ${cantidadDigitos} dígitos, máximo ${maxPosibles.toLocaleString('es-ES')} tickets. Ingresaste ${cantidadNumeros.toLocaleString('es-ES')}`
       );
       return;
     }
 
-    const resultado = await onCrearRifa(formData);
+    const resultado = await onCrearRifa({
+      ...formData,
+      cantidadDigitos,
+      cantidadNumeros
+    });
 
     if (resultado.exito) {
       setExito(true);
@@ -91,7 +96,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
     }
   };
 
-  const maxPosibles = Math.pow(10, formData.cantidadDigitos);
+  const maxPosibles = formData.cantidadDigitos ? Math.pow(10, parseInt(formData.cantidadDigitos)) : 0;
 
   return (
     <div className="card">
@@ -100,8 +105,14 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
       </div>
 
       <div className="card-body">
-        {error && <div className="alert alert-error">{error}</div>}
-        {exito && <div className="alert alert-success">✅ Rifa creada exitosamente</div>}
+        {/* SOLO MOSTRAR ERRORES EN EL FORMULARIO */}
+        {error && (
+          <div className="alert alert-error" style={{
+            animation: 'slideDown 0.3s ease-out'
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid-2">
@@ -146,7 +157,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               disabled={loading}
               placeholder="10000"
               min="1"
-              max={maxPosibles}
+              max={maxPosibles || undefined}
             />
 
             <Input
@@ -186,12 +197,12 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
               📋 Información del formato:
             </p>
             <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
-              Con <strong>{formData.cantidadDigitos}</strong> dígitos, máximo <strong>{maxPosibles.toLocaleString('es-ES')}</strong> tickets posibles
+              Con <strong>{formData.cantidadDigitos || '?'}</strong> dígitos, máximo <strong>{maxPosibles.toLocaleString('es-ES')}</strong> tickets posibles
             </p>
             <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)' }}>
-              Ejemplo: {Array(formData.cantidadDigitos).fill('0').join('').slice(0, -3) + '123'}
+              Ejemplo: {Array(formData.cantidadDigitos || 6).fill('0').join('').slice(0, -3) + '123'}
             </p>
-            {formData.cantidadNumeros > maxPosibles && (
+            {formData.cantidadNumeros && maxPosibles && parseInt(formData.cantidadNumeros) > maxPosibles && (
               <p style={{ margin: 'var(--space-sm) 0', fontSize: 'var(--font-size-sm)', color: '#991b1b' }}>
                 ⚠️ La cantidad de tickets ({formData.cantidadNumeros}) supera el máximo ({maxPosibles})
               </p>
@@ -203,7 +214,7 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
             variant="primary"
             size="large"
             loading={loading}
-            disabled={loading || formData.cantidadNumeros > maxPosibles}
+            disabled={loading || (formData.cantidadNumeros && maxPosibles && parseInt(formData.cantidadNumeros) > maxPosibles)}
             className="btn-block"
             style={{ marginTop: 'var(--space-lg)' }}
           >
@@ -212,9 +223,74 @@ export function CrearRifaSection({ onCrearRifa, loading }) {
         </form>
 
         <p style={{ marginTop: 'var(--space-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-          💡 Solo puede haber una rifa activa. Al activar una, las demás se desactivarán automáticamente.
+          ℹ️ Cada rifa tendrá su enlace único para compartir.
         </p>
       </div>
+
+      {/* TOAST DE ÉXITO - POSICIÓN FIJA */}
+      {exito && (
+        <div style={{
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem',
+          backgroundColor: '#ecfdf5',
+          border: '2px solid #10b981',
+          borderRadius: 'var(--border-radius-lg)',
+          padding: 'var(--space-lg) var(--space-xl)',
+          color: '#065f46',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-md)',
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: 'bold',
+          boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+          zIndex: 9999,
+          animation: 'slideIn 0.4s ease-out, slideOut 0.4s ease-in 2.6s forwards',
+          maxWidth: '400px'
+        }}>
+          <span style={{ fontSize: '1.8rem' }}>✨</span>
+          <div>
+            <div>¡Éxito!</div>
+            <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9 }}>Rifa creada exitosamente</div>
+          </div>
+        </div>
+      )}
+
+      {/* ANIMACIONES */}
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(400px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slideOut {
+          from {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          to {
+            opacity: 0;
+            transform: translateX(400px);
+          }
+        }
+      `}</style>
     </div>
   );
 }
