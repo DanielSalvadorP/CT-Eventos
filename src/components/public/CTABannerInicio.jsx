@@ -26,7 +26,7 @@ export function CTABannerInicio() {
       
       <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-2xl)', opacity: 0.95 }}>
         Haz clic en el botón y comunícate con nosotros por WhatsApp. <br /> 
-        Sí tienes dudas, presiona la opción PREGUNTAS
+        Sí tienes dudas, presiona la opción FAQs.
       </p>
 
       <a

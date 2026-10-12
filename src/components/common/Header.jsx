@@ -53,7 +53,7 @@ export function Header({ isAdmin = false, onLogout }) {
           onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           >
-            Preguntas
+            FAQs
           </Link>
         </div>
       </div>
