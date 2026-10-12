@@ -5,7 +5,7 @@ export function Header({ isAdmin = false, onLogout }) {
     <header style={{
       backgroundColor: 'var(--color-primary)',
       color: 'white',
-      height: '90px',
+      height: '80px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center'
@@ -23,7 +23,7 @@ export function Header({ isAdmin = false, onLogout }) {
           alignItems: 'center',
           justifyContent: 'flex-start'
         }}>
-          <img src="/ELdelCT.png" alt="imagenCT" width={150} height={50} />
+          <img src="/ELdelCT.png" alt="imagenCT" width={130} height={40} />
         </div>
 
         {/* EVENTOS */}
@@ -46,7 +46,7 @@ export function Header({ isAdmin = false, onLogout }) {
           <Link href="/faq" style={{
             color: 'white',
             textDecoration: 'none',
-            fontSize: '22px',
+            fontSize: '20px',
             fontWeight: 'bold',
             transition: 'opacity 0.2s'
           }}
