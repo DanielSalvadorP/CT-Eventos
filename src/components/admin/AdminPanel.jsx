@@ -162,28 +162,54 @@ export function AdminPanel() {
         marginBottom: 'var(--space-2xl)'
       }}>
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
             {/* LOGO */}
-        <div style={{
-          width: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start'
-        }}>
-          <img className='logo' src="/ELdelCT.png" alt="imagenCT" width={110} height={35} />
-        </div>
-        
-            <h3 style={{ margin: 0 }}>🎰 Panel Admin</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-lg)' }}>
-              <span style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
-                <p><strong>👤 {user?.displayName || user?.email}</strong></p>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start'
+            }}>
+              <img className='logo' src="/ELdelCT.png" alt="imagenCT" style={{
+                width: '130px',
+                height: '40px',
+                minWidth: '80px',
+                height: 'auto'
+              }} />
+            </div>
+            
+            {/* TÍTULO */}
+            <h3 style={{ 
+              margin: 0, 
+              flex: 1, 
+              textAlign: 'center',
+              fontSize: 'clamp(1.2rem, 5vw, 1.5rem)',
+              minWidth: '150px'
+            }}>
+              🎰 Panel Admin
+            </h3>
+            
+            {/* USUARIO + BOTÓN */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 'var(--space-sm)',
+              justifyContent: 'flex-end'
+            }}>
+              <span style={{ 
+                color: 'white', 
+                fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
+                whiteSpace: 'nowrap'
+              }}>
+                <p style={{ margin: 0 }}>
+                  <strong>👤 {user?.displayName || user?.email}</strong>
+                </p>
               </span>
               <Button
                 variant="secondary"
                 size="small"
                 onClick={handleLogout}
               >
-                Cerrar Sesión
+                Cerrar
               </Button>
             </div>
           </div>
