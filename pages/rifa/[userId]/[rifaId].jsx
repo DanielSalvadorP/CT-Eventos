@@ -103,26 +103,6 @@ export default function RifaPage() {
                   </p>
                 </div>
                 
-                <div>
-                  <p style={{ fontSize: 'var(--font-size-sm)', opacity: 0.9, margin: 0 }}>Fecha del Sorteo</p>
-                  <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold', margin: 'var(--space-sm) 0 0 0' }}>
-                    {new Date(rifa.fecha).toLocaleDateString('es-ES')}
-                  </p>
-                </div>
-                
-                <div>
-                  <p style={{ fontSize: 'var(--font-size-sm)', opacity: 0.9, margin: 0 }}>Números Disponibles</p>
-                  <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold', margin: 'var(--space-sm) 0 0 0' }}>
-                    {rifa.cantidadNumeros - (rifa.numerosUsados?.length || 0)} de {rifa.cantidadNumeros}
-                  </p>
-                </div>
-                
-                <div>
-                  <p style={{ fontSize: 'var(--font-size-sm)', opacity: 0.9, margin: 0 }}>Vendidas</p>
-                  <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold', margin: 'var(--space-sm) 0 0 0' }}>
-                    {rifa.numerosUsados?.length || 0}
-                  </p>
-                </div>
               </div>
             </div>
           </section>
