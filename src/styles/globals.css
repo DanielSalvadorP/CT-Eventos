@@ -243,11 +243,11 @@ button:disabled {
    RESPONSIVE
    ============================ */
 
-@media (max-width: 768px) {
+@media (max-width: 800px) {
 
   .logo{
     width: 90px;
-    height: 20px
+    height: 30px
   }
   h1 {
     font-size: var(--font-size-2xl);

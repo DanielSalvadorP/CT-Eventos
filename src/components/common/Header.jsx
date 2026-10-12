@@ -23,7 +23,7 @@ export function Header({ isAdmin = false, onLogout }) {
           alignItems: 'center',
           justifyContent: 'flex-start'
         }}>
-          <img src="/ELdelCT.png" alt="imagenCT" width={130} height={40} />
+          <img className='logo' src="/ELdelCT.png" alt="imagenCT" width={110} height={35} />
         </div>
 
         {/* EVENTOS */}
@@ -46,7 +46,7 @@ export function Header({ isAdmin = false, onLogout }) {
           <Link href="/faq" style={{
             color: 'white',
             textDecoration: 'none',
-            fontSize: '20px',
+            fontSize: 'var(--font-size-xl)',
             fontWeight: 'bold',
             transition: 'opacity 0.2s'
           }}
