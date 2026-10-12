@@ -163,10 +163,20 @@ export function AdminPanel() {
       }}>
         <div className="container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1 style={{ margin: 0 }}>🎰 Panel de Administración</h1>
+            {/* LOGO */}
+        <div style={{
+          width: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start'
+        }}>
+          <img className='logo' src="/ELdelCT.png" alt="imagenCT" width={110} height={35} />
+        </div>
+        
+            <h3 style={{ margin: 0 }}>🎰 Panel Admin</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-lg)' }}>
               <span style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
-                👤 {user?.displayName || user?.email}
+                <p><strong>👤 {user?.displayName || user?.email}</strong></p>
               </span>
               <Button
                 variant="secondary"

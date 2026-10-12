@@ -24,9 +24,10 @@ export default function Home() {
         <meta name="theme-color" content="#EB5C01" />
       </Head>
 
-      <Header isAdmin={false} />
+    
       
       <main>
+        <Header isAdmin={false} />
         <CTABannerInicio />
         <SocialSection />
       </main>
