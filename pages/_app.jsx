@@ -16,5 +16,6 @@ import '../src/styles/variables.css';
 import '../src/styles/components.css';
 
 export default function App({ Component, pageProps }) {
+  console.log('App initialized');
   return <Component {...pageProps} />;
 }
