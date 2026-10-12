@@ -158,8 +158,7 @@ export function AdminPanel() {
       <div style={{
         backgroundColor: 'var(--color-primary)',
         color: 'white',
-        padding: 'var(--space-lg)',
-        marginBottom: 'var(--space-2xl)'
+        padding: 'var(--space-lg)'
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
           {/* LOGO */}
@@ -187,7 +186,7 @@ export function AdminPanel() {
       {/* BARRA SUPERIOR - Usuario + Cerrar Sesión */}
       <div style={{
         borderBottom: '1px solid rgba(255,255,255,0.1)',
-        padding: 'var(--space-md) var(--space-lg)'
+        padding: 'var(--space-md) var(--space-lg)',
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-md)' }}>
           <span style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
@@ -208,28 +207,12 @@ export function AdminPanel() {
         </div>
       )}
 
-      {/* RIFA ACTIVA INFO */}
-      {rifaActiva && (
-        <div className="container" style={{ marginBottom: 'var(--space-2xl)' }}>
-          <div style={{
-            backgroundColor: '#ecfdf5',
-            border: '2px solid #10b981',
-            borderRadius: 'var(--border-radius-lg)',
-            padding: 'var(--space-lg)'
-          }}>
-            <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: '#065f46' }}>
-              <strong>✅ Rifa Activa:</strong> {rifaActiva.nombre} 
-              {rifaActiva.responsable && ` (Responsable: ${rifaActiva.responsable})`}
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* TABS */}
       <div className="container">
         <div style={{
           display: 'flex',
           gap: 'var(--space-sm)',
+          marginTop:'var(--space-2xl)',
           marginBottom: 'var(--space-2xl)',
           borderBottom: '2px solid var(--color-gray-200)',
           overflowX: 'auto',
