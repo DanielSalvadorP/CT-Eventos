@@ -153,66 +153,49 @@ export function AdminPanel() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-gray-900)' }}>
-      {/* HEADER */}
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-gray-900)' }}>      
+      {/* HEADER PRINCIPAL - Logo + Título centrados */}
       <div style={{
         backgroundColor: 'var(--color-primary)',
         color: 'white',
         padding: 'var(--space-lg)',
         marginBottom: 'var(--space-2xl)'
       }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-            {/* LOGO */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start'
-            }}>
-              <img className='logo' src="/ELdelCT.png" alt="imagenCT" style={{
-                width: '130px',
-                height: '40px',
-                minWidth: '80px',
-                height: 'auto'
-              }} />
-            </div>
-            
-            {/* TÍTULO */}
-            <h3 style={{ 
-              margin: 0, 
-              flex: 1, 
-              textAlign: 'center',
-              fontSize: 'clamp(1.2rem, 5vw, 1.5rem)',
-              minWidth: '150px'
-            }}>
-              🎰 Panel Admin
-            </h3>
-            
-            {/* USUARIO + BOTÓN */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 'var(--space-sm)',
-              justifyContent: 'flex-end'
-            }}>
-              <span style={{ 
-                color: 'white', 
-                fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-                whiteSpace: 'nowrap'
-              }}>
-                <p style={{ margin: 0 }}>
-                  <strong>👤 {user?.displayName || user?.email}</strong>
-                </p>
-              </span>
-              <Button
-                variant="secondary"
-                size="small"
-                onClick={handleLogout}
-              >
-                Cerrar
-              </Button>
-            </div>
-          </div>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+          {/* LOGO */}
+          <img 
+            className='logo' 
+            src="/ELdelCT.png" 
+            alt="imagenCT" 
+            style={{ 
+              width: 'clamp(80px, 20vw, 110px)', 
+              height: 'auto'
+            }} 
+          />
+          
+          {/* TÍTULO */}
+          <h3 style={{ 
+            margin: 0,
+            fontSize: 'clamp(1.2rem, 5vw, 2rem)',
+            textAlign: 'center'
+          }}>
+            🎰 Panel Admin
+          </h3>
+        </div>
+      </div>
+
+      {/* BARRA SUPERIOR - Usuario + Cerrar Sesión */}
+      <div style={{
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        padding: 'var(--space-md) var(--space-lg)'
+      }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-md)' }}>
+          <span style={{ color: 'white', fontSize: 'var(--font-size-sm)' }}>
+            <p style={{ margin: 0 }}><strong>👤 {user?.displayName || user?.email}</strong></p>
+          </span>
+          <Button variant="secondary" size="small" onClick={handleLogout}>
+            Cerrar Sesión
+          </Button>
         </div>
       </div>
 
@@ -278,14 +261,6 @@ export function AdminPanel() {
               👤 Registrar Comprador
             </Button>
           )}
-
-          <Button
-            variant={tab === 'seguridad' ? 'primary' : 'secondary'}
-            size="small"
-            onClick={() => setTab('seguridad')}
-          >
-            🔒 Seguridad
-          </Button>
         </div>
 
         {/* CONTENIDO POR TAB */}
