@@ -31,7 +31,7 @@ export default function RifaPage() {
   const cargarRifa = async () => {
     try {
       setLoading(true);
-      const datosRifa = await obtenerRifa(userId, rifaId);
+      const datosRifa = await obtenerRifaPublica(rifaId);
       
       if (!datosRifa) {
         setError('La rifa no existe o no está disponible');

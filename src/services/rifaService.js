@@ -275,6 +275,25 @@ export async function eliminarRegistroDeRifa(userId, rifaId, registroId) {
 }
 
 /**
+ * Obtiene una rifa específica PÚBLICAMENTE (sin autenticación)
+ * Usada para la página pública de consulta
+ */
+export async function obtenerRifaPublica(rifaId) {
+  try {
+    const rifaRef = ref(database, `rifas/${rifaId}`);
+    const snapshot = await get(rifaRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+
+    return null;
+  } catch (error) {
+    throw new Error(`Error al obtener rifa: ${error.message}`);
+  }
+}
+
+/**
  * Obtiene estadísticas de una rifa
  */
 export async function obtenerEstadisticasRifa(userId, rifaId) {
